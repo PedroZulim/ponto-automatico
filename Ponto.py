@@ -29,8 +29,8 @@ def bater_ponto():
     # Carrega .env localmente (no GitHub usa secrets)
     load_dotenv()
 
-    username = os.getenv("APDATA_USERNAME") or os.getenv("username")
-    password = os.getenv("APDATA_PASSWORD") or os.getenv("password")
+    username = os.getenv("APDATA_USERNAME", "Teste")
+    password = os.getenv("APDATA_PASSWORD", "Teste")
 
     if not username or not password:
         raise ValueError("Usuário/senha não encontrados nas variáveis de ambiente.")
