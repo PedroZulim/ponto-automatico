@@ -73,6 +73,9 @@ def bater_ponto():
         bater.send_keys(Keys.RETURN)
 
         # send_report("Sucesso", "Ponto batido com sucesso.")
+        wait.until(
+            ec.presence_of_element_located((By.ID, "ext-144"))
+        )
 
         print(driver.find_element(By.ID, "ext-144").text)
     except Exception as e:
