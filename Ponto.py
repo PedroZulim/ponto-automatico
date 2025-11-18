@@ -74,7 +74,7 @@ def bater_ponto():
 
         # send_report("Sucesso", "Ponto batido com sucesso.")
 
-        print("Ponto batido com sucesso.")
+        print(driver.find_element(By.ID, "ext-144").text)
     except Exception as e:
         # loga erro bonitinho pra debug nos Actions
         print(f"ERRO AO BATER PONTO: {e}")
