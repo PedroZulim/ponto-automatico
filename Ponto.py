@@ -1,5 +1,6 @@
 from datetime import datetime
 import os
+import time
 
 from dotenv import load_dotenv
 import Fetch_api
@@ -39,9 +40,6 @@ def bater_ponto():
 
     chrome_options = Options()
     chrome_options.add_argument("--headless=new")
-    chrome_options.add_argument("--no-sandbox")
-    chrome_options.add_argument("--disable-dev-shm-usage")
-    chrome_options.add_argument("--window-size=1920,1080")
 
     driver = webdriver.Chrome(
         service=Service(ChromeDriverManager().install()),
@@ -58,7 +56,7 @@ def bater_ponto():
 
         # espera o botão inicial ficar clicável
         btn = wait.until(
-            ec.element_to_be_clickable((By.ID, "button-1021"))
+            ec.presence_of_element_located((By.ID, "button-1021"))
         )
         btn.send_keys(Keys.RETURN)
 
@@ -70,7 +68,7 @@ def bater_ponto():
             ec.presence_of_element_located((By.NAME, "password_relogio_8001"))
         )
         bater = wait.until(
-            ec.element_to_be_clickable((By.ID, "ext-142"))
+            ec.presence_of_element_located((By.ID, "ext-142"))
         )
 
         usuario.send_keys(username)
@@ -80,17 +78,18 @@ def bater_ponto():
         print("Ponto batido com sucesso!")
 
         # send_report("Sucesso", "Ponto batido com sucesso.")
-        wait.until(
+        resultado = wait.until(
             ec.presence_of_element_located((By.ID, "ext-144"))
         )
-
-        print(driver.find_element(By.ID, "ext-144").text)
+        time.sleep(2)
+        print(resultado.text)
     except Exception as e:
         # loga erro bonitinho pra debug nos Actions
         print(f"ERRO AO BATER PONTO: {e}")
         # send_report("Erro", f"Erro ao bater ponto: {e}")
     finally:
         driver.quit()
+        print("Fechando navegador...")
 
 
 if __name__ == "__main__":
