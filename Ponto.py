@@ -3,10 +3,11 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 from webdriver_manager.chrome import ChromeDriverManager
 from dotenv import load_dotenv
 import os
-import time
 from datetime import datetime
 
 
@@ -17,7 +18,7 @@ def bater_ponto():
         print("Hoje não é dia útil, não vou bater ponto.")
         return
 
-    # Carrega .env localmente (no GitHub será ignorado, mas tudo vem de secrets)
+    # Carrega .env localmente (no GitHub usa secrets)
     load_dotenv()
 
     username = os.getenv("APDATA_USERNAME") or os.getenv("username")
@@ -27,7 +28,6 @@ def bater_ponto():
         raise ValueError("Usuário/senha não encontrados nas variáveis de ambiente.")
 
     chrome_options = Options()
-    # Headless pro GitHub Actions
     chrome_options.add_argument("--headless=new")
     chrome_options.add_argument("--no-sandbox")
     chrome_options.add_argument("--disable-dev-shm-usage")
@@ -38,25 +38,36 @@ def bater_ponto():
         options=chrome_options
     )
 
+    wait = WebDriverWait(driver, 30)  # espera até 30s pros elementos aparecerem
+
     try:
         driver.get("https://cliente.apdata.com.br/dicon/")
-        time.sleep(3)
 
-        btn = driver.find_element(By.ID, "button-1021")
+        # espera o botão inicial ficar clicável
+        btn = wait.until(
+            EC.element_to_be_clickable((By.ID, "button-1021"))
+        )
         btn.send_keys(Keys.RETURN)
-        time.sleep(3)
 
-        usuario = driver.find_element(By.NAME, "userName_relogio_8001")
-        senha = driver.find_element(By.NAME, "password_relogio_8001")
-        bater = driver.find_element(By.ID, "ext-142")
+        # espera os campos de usuário e senha aparecerem
+        usuario = wait.until(
+            EC.presence_of_element_located((By.NAME, "userName_relogio_8001"))
+        )
+        senha = wait.until(
+            EC.presence_of_element_located((By.NAME, "password_relogio_8001"))
+        )
+        bater = wait.until(
+            EC.element_to_be_clickable((By.ID, "ext-142"))
+        )
 
         usuario.send_keys(username)
         senha.send_keys(password)
-
         bater.send_keys(Keys.RETURN)
-        time.sleep(3)
 
         print("Ponto batido com sucesso.")
+    except Exception as e:
+        # loga erro bonitinho pra debug nos Actions
+        print(f"ERRO AO BATER PONTO: {e}")
     finally:
         driver.quit()
 
