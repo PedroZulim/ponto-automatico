@@ -10,7 +10,6 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.ui import WebDriverWait
-from send_report import send_report
 from webdriver_manager.chrome import ChromeDriverManager
 
 
@@ -20,11 +19,11 @@ def bater_ponto():
     hoje = datetime.today().weekday()
     if not (0 <= hoje <= 4):
         print("Hoje não é dia útil, não vou bater ponto.")
-        send_report("Ignorado", "Hoje não é dia útil, não vou bater ponto.")
+        # send_report("Ignorado", "Hoje não é dia útil, não vou bater ponto.")
         return
     elif fetch.get_feriados().__contains__(datetime.today().strftime('%Y-%m-%d')):
         print("Hoje é feriado, não vou bater ponto.")
-        send_report("Ignorado", "Hoje é feriado, não vou bater ponto.")
+        # send_report("Ignorado", "Hoje é feriado, não vou bater ponto.")
         return
 
     # Carrega .env localmente (no GitHub usa secrets)
@@ -73,13 +72,13 @@ def bater_ponto():
         senha.send_keys(password)
         bater.send_keys(Keys.RETURN)
 
-        send_report("Sucesso", "Ponto batido com sucesso.")
+        # send_report("Sucesso", "Ponto batido com sucesso.")
 
         print("Ponto batido com sucesso.")
     except Exception as e:
         # loga erro bonitinho pra debug nos Actions
         print(f"ERRO AO BATER PONTO: {e}")
-        send_report("Erro", f"Erro ao bater ponto: {e}")
+        # send_report("Erro", f"Erro ao bater ponto: {e}")
     finally:
         driver.quit()
 
