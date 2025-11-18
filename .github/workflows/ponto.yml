@@ -2,9 +2,10 @@ name: Bater ponto automático
 
 on:
   schedule:
-    # 08:00 e 18:00 horário de Brasília (UTC-3) -> 11:00 e 21:00 UTC
-    - cron: "0 11 * * 1-5"
-    - cron: "0 21 * * 1-5"
+    # 07:22 da manhã (BRT) → 10:22 UTC
+    - cron: "22 10 * * 1-5"
+    # 17:10 da tarde (BRT) → 20:10 UTC
+    - cron: "10 20 * * 1-5"
   workflow_dispatch:
 
 jobs:
