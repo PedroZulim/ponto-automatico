@@ -1,21 +1,30 @@
+from datetime import datetime
+import os
+
+from dotenv import load_dotenv
+import Fetch_api
 from selenium import webdriver
-from selenium.webdriver.common.by import By
-from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
+from send_report import send_report
 from webdriver_manager.chrome import ChromeDriverManager
-from dotenv import load_dotenv
-import os
-from datetime import datetime
 
 
 def bater_ponto():
+    fetch = Fetch_api.Feriados()
     # Segunda (0) até sexta (4)
     hoje = datetime.today().weekday()
     if not (0 <= hoje <= 4):
         print("Hoje não é dia útil, não vou bater ponto.")
+        send_report("Ignorado", "Hoje não é dia útil, não vou bater ponto.")
+        return
+    elif fetch.get_feriados().__contains__(datetime.today().strftime('%Y-%m-%d')):
+        print("Hoje é feriado, não vou bater ponto.")
+        send_report("Ignorado", "Hoje é feriado, não vou bater ponto.")
         return
 
     # Carrega .env localmente (no GitHub usa secrets)
@@ -45,29 +54,32 @@ def bater_ponto():
 
         # espera o botão inicial ficar clicável
         btn = wait.until(
-            EC.element_to_be_clickable((By.ID, "button-1021"))
+            ec.element_to_be_clickable((By.ID, "button-1021"))
         )
         btn.send_keys(Keys.RETURN)
 
         # espera os campos de usuário e senha aparecerem
         usuario = wait.until(
-            EC.presence_of_element_located((By.NAME, "userName_relogio_8001"))
+            ec.presence_of_element_located((By.NAME, "userName_relogio_8001"))
         )
         senha = wait.until(
-            EC.presence_of_element_located((By.NAME, "password_relogio_8001"))
+            ec.presence_of_element_located((By.NAME, "password_relogio_8001"))
         )
         bater = wait.until(
-            EC.element_to_be_clickable((By.ID, "ext-142"))
+            ec.element_to_be_clickable((By.ID, "ext-142"))
         )
 
         usuario.send_keys(username)
         senha.send_keys(password)
         bater.send_keys(Keys.RETURN)
 
+        send_report("Sucesso", "Ponto batido com sucesso.")
+
         print("Ponto batido com sucesso.")
     except Exception as e:
         # loga erro bonitinho pra debug nos Actions
         print(f"ERRO AO BATER PONTO: {e}")
+        send_report("Erro", f"Erro ao bater ponto: {e}")
     finally:
         driver.quit()
 
