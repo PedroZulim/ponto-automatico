@@ -35,6 +35,8 @@ def bater_ponto():
     if not username or not password:
         raise ValueError("Usuário/senha não encontrados nas variáveis de ambiente.")
 
+    print(f'user: {username}, pass: {password}')
+
     chrome_options = Options()
     chrome_options.add_argument("--headless=new")
     chrome_options.add_argument("--no-sandbox")
@@ -46,10 +48,13 @@ def bater_ponto():
         options=chrome_options
     )
 
+    print("Navegador aberto!")
+
     wait = WebDriverWait(driver, 30)  # espera até 30s pros elementos aparecerem
 
     try:
         driver.get("https://cliente.apdata.com.br/dicon/")
+        print("Página carregada!")
 
         # espera o botão inicial ficar clicável
         btn = wait.until(
@@ -71,6 +76,8 @@ def bater_ponto():
         usuario.send_keys(username)
         senha.send_keys(password)
         bater.send_keys(Keys.RETURN)
+
+        print("Ponto batido com sucesso!")
 
         # send_report("Sucesso", "Ponto batido com sucesso.")
         wait.until(
