@@ -10,19 +10,18 @@ load_dotenv()
 def send_report(status, message):
     sender = os.getenv("EMAIL_SENDER")
     password = os.getenv("EMAIL_PASSWORD")
-    receiver = sender
 
     body = f"Status: {status}\n\n{message}"
     msg = MIMEText(body)
     msg["Subject"] = f"Relatório ponto automático - {status}"
     msg["From"] = sender
-    msg["To"] = ", ".join(receiver)
+    msg["To"] = sender
 
     try:
         with smtplib.SMTP_SSL("smtp.gmail.com", 465) as smtp:
             smtp.login(sender, password)
             smtp.send_message(msg)
-        print(f"Email enviado com sucesso para {', '.join(receiver)}")
+        print(f"Email enviado com sucesso para {sender}")
     except smtplib.SMTPAuthenticationError as e:
         print(f"Erro de autenticação: {e}")
         raise
