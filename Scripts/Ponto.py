@@ -3,7 +3,7 @@ import os
 import time
 
 from dotenv import load_dotenv
-import Fetch_api
+from Feriados import Feriados
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
@@ -16,7 +16,7 @@ from webdriver_manager.chrome import ChromeDriverManager
 
 
 def bater_ponto():
-    fetch = Fetch_api.Feriados()
+    fetch = Feriados()
     # Segunda (0) até sexta (4)
     hoje = datetime.today().weekday()
     if not (0 <= hoje <= 4):
