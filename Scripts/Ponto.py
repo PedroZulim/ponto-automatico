@@ -74,19 +74,29 @@ def bater_ponto():
             ec.presence_of_element_located((By.ID, "ext-142"))
         )
 
-        usuario.send_keys(username)
-        senha.send_keys(password)
-        bater.send_keys(Keys.RETURN)
+        while True:
+            agora = datetime.now().time()
 
-        print("Ponto batido com sucesso!")
+            # Dentro da janela de entrada
+            if agora == time(7, 22):
+                print("Dentro da janela de marcação, batendo ponto...")
+                usuario.send_keys(username)
+                senha.send_keys(password)
+                bater.send_keys(Keys.RETURN)
 
-        resultado = wait.until(
-            ec.presence_of_element_located((By.ID, "ext-144"))
-        )
-        timer.sleep(2)
-        print(resultado.text)
+                print("Ponto batido com sucesso!")
 
-        send_report("Sucesso", resultado.text)
+                resultado = wait.until(
+                    ec.presence_of_element_located((By.ID, "ext-144"))
+                )
+                timer.sleep(2)
+                print(resultado.text)
+
+                send_report("Sucesso", resultado.text)
+
+            print("Fora da janela de marcação, esperando 60 segundos...")
+            timer.sleep(30)
+
     except Exception as e:
         # loga erro bonitinho pra debug nos Actions
         print(f"ERRO AO BATER PONTO: {e}")
