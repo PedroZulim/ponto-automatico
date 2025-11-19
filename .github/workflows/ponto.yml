@@ -13,6 +13,8 @@ jobs:
     env:
       APDATA_USERNAME: ${{ secrets.APDATA_USERNAME }}
       APDATA_PASSWORD: ${{ secrets.APDATA_PASSWORD }}
+      EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
+      EMAIL_SENDER: ${{ secrets.EMAIL_SENDER }}
 
     steps:
       - name: Checkout do repositório
