@@ -11,7 +11,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.ui import WebDriverWait
-import Send_email
+from Send_email import send_report
 from webdriver_manager.chrome import ChromeDriverManager
 
 
@@ -21,23 +21,21 @@ def bater_ponto():
     hoje = datetime.today().weekday()
     if not (0 <= hoje <= 4):
         print("Hoje não é dia útil, não vou bater ponto.")
-        Send_email.send_report("Ignorado", "Hoje não é dia útil, não vou bater ponto.")
+        send_report("Ignorado", "Hoje não é dia útil, não vou bater ponto.")
         return
     elif fetch.get_feriados().__contains__(datetime.today().strftime('%Y-%m-%d')):
         print("Hoje é feriado, não vou bater ponto.")
-        Send_email.send_report("Ignorado", "Hoje é feriado, não vou bater ponto.")
+        send_report("Ignorado", "Hoje é feriado, não vou bater ponto.")
         return
 
     # Carrega .env localmente (no GitHub usa secrets)
     load_dotenv()
 
-    username = os.getenv("APDATA_USERNAME", "Teste")
-    password = os.getenv("APDATA_PASSWORD", "Teste")
+    username = os.getenv("APDATA_USERNAME")
+    password = os.getenv("APDATA_PASSWORD")
 
     if not username or not password:
         raise ValueError("Usuário/senha não encontrados nas variáveis de ambiente.")
-
-    print(f'user: {username}, pass: {password}')
 
     chrome_options = Options()
     chrome_options.add_argument("--headless=new")
@@ -55,11 +53,15 @@ def bater_ponto():
         driver.get("https://cliente.apdata.com.br/dicon/")
         print("Página carregada!")
 
+        time.sleep(4)
+
         # espera o botão inicial ficar clicável
         btn = wait.until(
             ec.presence_of_element_located((By.ID, "button-1021"))
         )
         btn.send_keys(Keys.RETURN)
+
+        time.sleep(2)
 
         # espera os campos de usuário e senha aparecerem
         usuario = wait.until(
@@ -78,18 +80,17 @@ def bater_ponto():
 
         print("Ponto batido com sucesso!")
 
-        # send_report("Sucesso", "Ponto batido com sucesso.")
         resultado = wait.until(
             ec.presence_of_element_located((By.ID, "ext-144"))
         )
         time.sleep(2)
         print(resultado.text)
 
-        Send_email.send_report("Sucesso", resultado.text)
+        send_report("Sucesso", resultado.text)
     except Exception as e:
         # loga erro bonitinho pra debug nos Actions
         print(f"ERRO AO BATER PONTO: {e}")
-        Send_email.send_report("Erro", f"Erro ao bater ponto: {e}")
+        send_report("Erro", f"Erro ao bater ponto: {e}")
     finally:
         driver.quit()
         print("Fechando navegador...")
