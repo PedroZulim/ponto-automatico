@@ -1,6 +1,6 @@
-from datetime import datetime
+from datetime import datetime, time
 import os
-import time
+import time as timer
 
 from dotenv import load_dotenv
 from Feriados import Feriados
@@ -31,8 +31,8 @@ def bater_ponto():
     # Carrega .env localmente (no GitHub usa secrets)
     load_dotenv()
 
-    username = os.getenv("APDATA_USERNAME")
-    password = os.getenv("APDATA_PASSWORD")
+    username = os.getenv("APDATA_USERNAME", "Teste")
+    password = os.getenv("APDATA_PASSWORD", "Teste")
 
     if not username or not password:
         raise ValueError("Usuário/senha não encontrados nas variáveis de ambiente.")
@@ -53,7 +53,7 @@ def bater_ponto():
         driver.get("https://cliente.apdata.com.br/dicon/")
         print("Página carregada!")
 
-        time.sleep(4)
+        timer.sleep(4)
 
         # espera o botão inicial ficar clicável
         btn = wait.until(
@@ -61,7 +61,7 @@ def bater_ponto():
         )
         btn.send_keys(Keys.RETURN)
 
-        time.sleep(2)
+        timer.sleep(2)
 
         # espera os campos de usuário e senha aparecerem
         usuario = wait.until(
@@ -83,7 +83,7 @@ def bater_ponto():
         resultado = wait.until(
             ec.presence_of_element_located((By.ID, "ext-144"))
         )
-        time.sleep(2)
+        timer.sleep(2)
         print(resultado.text)
 
         send_report("Sucesso", resultado.text)

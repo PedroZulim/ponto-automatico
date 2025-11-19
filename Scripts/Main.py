@@ -1,8 +1,9 @@
-from datetime import datetime
-import time
+from datetime import datetime, time
+import time as timer
 
 from Ponto import bater_ponto
 from Send_email import send_report
+from Feriados import Feriados
 
 ENTRADA_INICIO = time(7, 22)
 ENTRADA_LIMITE = time(7, 27)
@@ -10,7 +11,8 @@ ENTRADA_LIMITE = time(7, 27)
 SAIDA_INICIO = time(17, 10)
 SAIDA_LIMITE = time(17, 15)
 
-tempo = True
+
+tempo = Feriados().can_mark()
 while tempo:
     agora = datetime.now().time()
 
@@ -34,7 +36,7 @@ while tempo:
         # Perdeu até a saída → para imediatamente
         tempo = False
 
-    time.sleep(60)
+    timer.sleep(60)
 
 else:
     send_report("Erro", "Passou do horário esperado para bater ponto.")

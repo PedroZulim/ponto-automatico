@@ -8,8 +8,8 @@ load_dotenv()
 
 
 def send_report(status, message):
-    sender = os.getenv("EMAIL_SENDER")
-    password = os.getenv("EMAIL_PASSWORD")
+    sender = os.getenv("EMAIL_SENDER", "Teste")
+    password = os.getenv("EMAIL_PASSWORD", "Teste")
 
     body = f"Status: {status}\n\n{message}"
     msg = MIMEText(body)
