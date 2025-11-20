@@ -5,11 +5,11 @@ from Ponto import bater_ponto
 from Send_email import send_report
 from Feriados import Feriados
 
-ENTRADA_INICIO = time(7, 20)
-ENTRADA_LIMITE = time(7, 24)
+ENTRADA_INICIO = time(7, 18)
+ENTRADA_LIMITE = time(7, 26)
 
-SAIDA_INICIO = time(17, 8)
-SAIDA_LIMITE = time(17, 12)
+SAIDA_INICIO = time(17, 6)
+SAIDA_LIMITE = time(17, 14)
 
 
 tempo = Feriados().can_mark()
