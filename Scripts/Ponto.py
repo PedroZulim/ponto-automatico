@@ -6,13 +6,11 @@ from dotenv import load_dotenv
 from Feriados import Feriados
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.ui import WebDriverWait
 from Send_email import send_report
-from webdriver_manager.chrome import ChromeDriverManager
 
 
 def bater_ponto():
@@ -40,10 +38,7 @@ def bater_ponto():
     chrome_options = Options()
     chrome_options.add_argument("--headless=new")
 
-    driver = webdriver.Chrome(
-        service=Service(ChromeDriverManager().install()),
-        options=chrome_options
-    )
+    driver = webdriver.Chrome(options=chrome_options)
 
     print("Navegador aberto!")
 
