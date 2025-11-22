@@ -5,20 +5,34 @@ from Feriados import Feriados
 from Ponto import PontoBot
 from Send_email import EmailReporter
 
-
-# Janela de entrada
+# Janelas de segurança (para não tentar o dia todo)
 ENTRADA_INICIO = time(7, 15)
-ENTRADA_LIMITE = time(7, 23)
+ENTRADA_LIMITE = time(7, 27)
 
-# Janela de saída
 SAIDA_INICIO = time(17, 3)
-SAIDA_LIMITE = time(17, 11)
+SAIDA_LIMITE = time(17, 17)
+
+# Horários exatos em que o ponto deve ser batido
+TARGET_ENTRADA = "07:22"
+TARGET_SAIDA = "17:10"
 
 
-def _identificar_periodo(agora: time) -> str | None:
+def _esta_na_janela(agora: time) -> bool:
+    """Retorna True se estiver em qualquer janela (entrada ou saída)."""
     if ENTRADA_INICIO <= agora <= ENTRADA_LIMITE:
-        return "Entrada"
+        return True
     if SAIDA_INICIO <= agora <= SAIDA_LIMITE:
+        return True
+    return False
+
+
+def _identificar_periodo_por_horario_exato(hora_minuto: str) -> str | None:
+    """
+    Descobre se o horário exato é de Entrada ou Saída.
+    """
+    if hora_minuto == TARGET_ENTRADA:
+        return "Entrada"
+    if hora_minuto == TARGET_SAIDA:
         return "Saída"
     return None
 
@@ -31,30 +45,50 @@ def main() -> None:
     # Validação inicial: dia útil / feriado
     pode_bater, msg_validacao = feriados.can_mark_today()
     if not pode_bater:
-        # Só manda um relatório simples de "Ignorado" e encerra
         reporter.send_report("Ignorado", msg_validacao)
         return
 
-    print("Iniciando loop de horário para bater ponto...")
+    print("Iniciando loop para aguardar horário exato de batida de ponto...")
 
     while True:
-        agora = datetime.now().time()
-        periodo = _identificar_periodo(agora)
+        agora_dt = datetime.now()
+        agora = agora_dt.time()
+        hora_minuto = agora_dt.strftime("%H:%M")
+
+        print(f"Agora: {hora_minuto}")
+
+        # Se não está em nenhuma janela, verifica se já passou do dia
+        if not _esta_na_janela(agora):
+            # Se já passou da janela da saída, desiste do dia
+            if agora > SAIDA_LIMITE:
+                msg = (
+                    "Passou do horário esperado para bater ponto "
+                    "(nem entrada nem saída foram realizados)."
+                )
+                print(msg)
+                reporter.send_report("Erro", msg)
+                break
+
+            # Ainda é cedo, antes de qualquer janela → só espera
+            print("Fora das janelas de marcação, aguardando 60 segundos...")
+            sleep(60)
+            continue
+
+        # Aqui já está dentro de alguma janela (entrada ou saída)
+        periodo = _identificar_periodo_por_horario_exato(hora_minuto)
 
         if periodo:
-            print(f"Dentro da janela de {periodo}. Tentando bater ponto...")
+            # Só entra aqui se for exatamente 07:22 ou 17:10
+            print(f"Horário EXATO de {periodo} atingido ({hora_minuto}). Tentando bater ponto...")
             status, msg = ponto_bot.bater_ponto(periodo=periodo)
             reporter.send_report(status, msg)
             break
 
-        # Se passou da janela de saída, não faz mais nada hoje
-        if agora > SAIDA_LIMITE:
-            msg = "Passou do horário esperado para bater ponto (entrada e saída)."
-            print(msg)
-            reporter.send_report("Erro", msg)
-            break
-
-        print("Fora da janela de marcação, aguardando 60 segundos...")
+        # Ainda dentro da janela, mas não é o horário exato ainda
+        print(
+            "Dentro da janela de marcação, mas ainda não é o horário exato "
+            f"(alvos: {TARGET_ENTRADA} / {TARGET_SAIDA}). Aguardando 60 segundos..."
+        )
         sleep(60)
 
 
