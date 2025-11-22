@@ -57,15 +57,17 @@ Os horários estão configurados em dois arquivos:
 **`.github/workflows/ponto.yml`** - Horários de execução do workflow:
 ```yaml
 schedule:
-  - cron: "0 10 * * 1-5"  # 07:19 BRT (ajuste para seu fuso horário)
-  - cron: "55 19 * * 1-5" # 17:07 BRT (ajuste para seu fuso horário)
+  - cron: "0 10 * * 1-5"  # 10:00 UTC = 07:00 BRT (inicia antes da entrada)
+  - cron: "55 19 * * 1-5" # 19:55 UTC = 16:55 BRT (inicia antes da saída)
 ```
+> O workflow inicia alguns minutos antes do horário de batida para dar tempo ao script aguardar o momento exato.
 
 **`Scripts/Main.py`** - Horários exatos de entrada e saída:
 ```python
 TARGET_ENTRADA = "07:22"  # Horário desejado de entrada
 TARGET_SAIDA = "17:10"    # Horário desejado de saída
 ```
+> O script aguarda até atingir estes horários exatos para bater o ponto, mesmo que o workflow tenha iniciado antes.
 
 #### 4. Habilite o GitHub Actions
 
