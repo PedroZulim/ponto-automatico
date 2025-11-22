@@ -2,6 +2,8 @@
 
 Sistema automatizado para registro de ponto de entrada e saída usando GitHub Actions.
 
+> **✅ Sim, funciona em repositórios privados!** Para mais informações sobre como usar GitHub Actions em repositórios privados, veja [este guia detalhado](GITHUB_ACTIONS_PRIVATE_REPO.md).
+
 ## 📋 Descrição
 
 Este projeto automatiza o registro de ponto (entrada e saída) utilizando GitHub Actions, executando em horários específicos durante dias úteis. O sistema:
