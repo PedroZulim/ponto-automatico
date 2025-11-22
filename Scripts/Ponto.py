@@ -1,105 +1,127 @@
-from datetime import datetime, time
+from datetime import datetime
 import os
-import time as timer
+from typing import Tuple
 
 from dotenv import load_dotenv
-from Feriados import Feriados
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.ui import WebDriverWait
-from Send_email import send_report
+
+from Feriados import Feriados
 
 
-def bater_ponto():
-    fetch = Feriados()
-    # Segunda (0) até sexta (4)
-    hoje = datetime.today().weekday()
-    if not (0 <= hoje <= 4):
-        print("Hoje não é dia útil, não vou bater ponto.")
-        send_report("Ignorado", "Hoje não é dia útil, não vou bater ponto.")
-        return
-    elif fetch.get_feriados().__contains__(datetime.today().strftime('%Y-%m-%d')):
-        print("Hoje é feriado, não vou bater ponto.")
-        send_report("Ignorado", "Hoje é feriado, não vou bater ponto.")
-        return
+class PontoBot:
+    def __init__(self, feriados: Feriados | None = None, headless: bool = True) -> None:
+        self.feriados = feriados or Feriados()
+        self.headless = headless
 
-    # Carrega .env localmente (no GitHub usa secrets)
-    load_dotenv()
+        # Carrega .env localmente (no GitHub usa secrets)
+        load_dotenv()
 
-    username = os.getenv("APDATA_USERNAME", "Teste")
-    password = os.getenv("APDATA_PASSWORD", "Teste")
+        self.username = os.getenv("APDATA_USERNAME")
+        self.password = os.getenv("APDATA_PASSWORD")
 
-    if not username or not password:
-        raise ValueError("Usuário/senha não encontrados nas variáveis de ambiente.")
+        if not self.username or not self.password:
+            print(
+                "ATENÇÃO: APDATA_USERNAME e/ou APDATA_PASSWORD não configurados. "
+                "Bater ponto irá falhar."
+            )
 
-    chrome_options = Options()
-    chrome_options.add_argument("--headless=new")
+    def _build_driver(self) -> webdriver.Chrome:
+        chrome_options = Options()
+        if self.headless:
+            chrome_options.add_argument("--headless=new")
 
-    driver = webdriver.Chrome(options=chrome_options)
+        driver = webdriver.Chrome(options=chrome_options)
+        print("Navegador aberto!")
+        return driver
 
-    print("Navegador aberto!")
+    def bater_ponto(self, periodo: str | None = None) -> Tuple[str, str]:
+        """
+        Tenta bater ponto AGORA.
+        Retorna (status, mensagem):
 
-    wait = WebDriverWait(driver, 30)  # espera até 30s pros elementos aparecerem
+        status:
+          - "Sucesso"
+          - "Ignorado"
+          - "Erro"
+        """
+        pode_bater, msg_validacao = self.feriados.can_mark_today()
+        if not pode_bater:
+            # Não tenta nem abrir navegador
+            return "Ignorado", msg_validacao
 
-    try:
-        driver.get("https://cliente.apdata.com.br/dicon/")
-        print("Página carregada!")
+        if not self.username or not self.password:
+            return "Erro", (
+                "Usuário/senha APDATA não encontrados nas variáveis de ambiente. "
+                "Configure APDATA_USERNAME e APDATA_PASSWORD."
+            )
 
-        timer.sleep(4)
+        driver = self._build_driver()
+        wait = WebDriverWait(driver, 30)  # espera até 30s pros elementos aparecerem
 
-        # espera o botão inicial ficar clicável
-        btn = wait.until(
-            ec.presence_of_element_located((By.ID, "button-1021"))
-        )
-        btn.send_keys(Keys.RETURN)
+        try:
+            driver.get("https://cliente.apdata.com.br/dicon/")
+            print("Página carregada!")
 
-        timer.sleep(2)
+            # Carregamento inicial da página
+            # (tempo extra para certeza em ambientes mais lentos)
+            from time import sleep
+            sleep(4)
 
-        # espera os campos de usuário e senha aparecerem
-        usuario = wait.until(
-            ec.presence_of_element_located((By.NAME, "userName_relogio_8001"))
-        )
-        senha = wait.until(
-            ec.presence_of_element_located((By.NAME, "password_relogio_8001"))
-        )
-        bater = wait.until(
-            ec.presence_of_element_located((By.ID, "ext-142"))
-        )
+            # espera o botão inicial ficar clicável
+            btn = wait.until(
+                ec.presence_of_element_located((By.ID, "button-1021"))
+            )
+            btn.send_keys(Keys.RETURN)
 
-        while True:
-            agora = datetime.now().time()
+            sleep(2)
 
-            # Dentro da janela de entrada
-            if agora == time(7, 22):
-                print("Dentro da janela de marcação, batendo ponto...")
-                usuario.send_keys(username)
-                senha.send_keys(password)
-                bater.send_keys(Keys.RETURN)
+            # espera os campos de usuário e senha aparecerem
+            usuario = wait.until(
+                ec.presence_of_element_located((By.NAME, "userName_relogio_8001"))
+            )
+            senha = wait.until(
+                ec.presence_of_element_located((By.NAME, "password_relogio_8001"))
+            )
+            bater = wait.until(
+                ec.presence_of_element_located((By.ID, "ext-142"))
+            )
 
-                print("Ponto batido com sucesso!")
+            print("Preenchendo credenciais e batendo ponto...")
+            usuario.send_keys(self.username)
+            senha.send_keys(self.password)
+            bater.send_keys(Keys.RETURN)
 
-                resultado = wait.until(
-                    ec.presence_of_element_located((By.ID, "ext-144"))
-                )
-                timer.sleep(2)
-                print(resultado.text)
+            print("Ponto enviado, aguardando confirmação...")
+            resultado = wait.until(
+                ec.presence_of_element_located((By.ID, "ext-144"))
+            )
 
-                send_report("Sucesso", resultado.text)
+            from time import sleep as tsleep
+            tsleep(2)
 
-            print("Fora da janela de marcação, esperando 60 segundos...")
-            timer.sleep(30)
+            texto_resultado = resultado.text
+            print("Resultado da batida de ponto:")
+            print(texto_resultado)
 
-    except Exception as e:
-        # loga erro bonitinho pra debug nos Actions
-        print(f"ERRO AO BATER PONTO: {e}")
-        send_report("Erro", f"Erro ao bater ponto: {e}")
-    finally:
-        driver.quit()
-        print("Fechando navegador...")
+            periodo_label = periodo or "Ponto"
+            msg = (
+                f"{periodo_label} batido com sucesso em "
+                f"{datetime.now().strftime('%d/%m/%Y %H:%M:%S')}.\n\n"
+                f"Mensagem do sistema:\n{texto_resultado}"
+            )
+            return "Sucesso", msg
 
+        except Exception as e:
+            # loga erro bonitinho pra debug (incluindo nos Actions)
+            print(f"ERRO AO BATER PONTO: {e}")
+            msg = f"Erro ao bater ponto em {datetime.now().strftime('%d/%m/%Y %H:%M:%S')}: {e}"
+            return "Erro", msg
 
-if __name__ == "__main__":
-    bater_ponto()
+        finally:
+            driver.quit()
+            print("Fechando navegador...")
