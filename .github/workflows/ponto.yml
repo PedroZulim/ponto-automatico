@@ -3,7 +3,7 @@ name: Bater ponto automático
 on:
   schedule:
     - cron: "0 10 * * 1-5"  # 07:19 BRT -> 10:19 UTC
-    - cron: "45 19 * * 1-5"  # 17:07 BRT -> 20:07 UTC
+    - cron: "55 19 * * 1-5"  # 17:07 BRT -> 20:07 UTC
   workflow_dispatch:
 
 jobs:
