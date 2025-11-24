@@ -1,16 +1,16 @@
 from datetime import datetime
 import os
 from typing import Tuple
+from zoneinfo import ZoneInfo
 
 from dotenv import load_dotenv
+from Feriados import Feriados
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.support.ui import WebDriverWait
-
-from Feriados import Feriados
 
 
 class PontoBot:
@@ -111,7 +111,7 @@ class PontoBot:
             periodo_label = periodo or "Ponto"
             msg = (
                 f"{periodo_label} batido com sucesso em "
-                f"{datetime.now().strftime('%d/%m/%Y %H:%M:%S')}.\n\n"
+                f"{datetime.now(tz=ZoneInfo('America/Sao_Paulo')).strftime('%d/%m/%Y %H:%M:%S')}.\n\n"
                 f"Mensagem do sistema:\n{texto_resultado}"
             )
             return "Sucesso", msg
@@ -119,7 +119,11 @@ class PontoBot:
         except Exception as e:
             # loga erro bonitinho pra debug (incluindo nos Actions)
             print(f"ERRO AO BATER PONTO: {e}")
-            msg = f"Erro ao bater ponto em {datetime.now().strftime('%d/%m/%Y %H:%M:%S')}: {e}"
+            msg = f"""Erro ao bater ponto em {
+                datetime
+                    .now(tz=ZoneInfo('America/Sao_Paulo'))
+                    .strftime('%d/%m/%Y %H:%M:%S')
+                }: {e}"""
             return "Erro", msg
 
         finally:

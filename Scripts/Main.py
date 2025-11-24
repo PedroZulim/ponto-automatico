@@ -1,5 +1,6 @@
 from datetime import datetime, time
 from time import sleep
+from zoneinfo import ZoneInfo
 
 from Feriados import Feriados
 from Ponto import PontoBot
@@ -50,7 +51,7 @@ def main() -> None:
     print("Iniciando loop para aguardar horário exato de batida de ponto...")
 
     while True:
-        agora_dt = datetime.now()
+        agora_dt = datetime.now(tz=ZoneInfo("America/Sao_Paulo"))
         agora = agora_dt.time()
         hora_minuto = agora_dt.strftime("%H:%M")
 
