@@ -7,15 +7,16 @@ Este guia mostra como configurar um **serviço de cron online gratuito** (cron-j
 ### Arquitetura
 
 ```
-Cron-Job.org (07:20 e 17:08) 
-    ↓ 
-POST → GitHub API 
-    ↓ 
-GitHub Actions (workflow ponto.yml) 
-    ↓ 
-Main.py aguarda horário exato 
-    ↓ 
-Ponto batido + E-mail enviado
+┌───────────────────────────────┐    ┌───────────────────────────────┐
+│        Cron-Job.org           │──▶│        GitHub Actions         │
+│        (07:20 e 17:00)        │    │      (workflow ponto.yml)     │
+└───────────────────────────────┘    └───────────────────────────────┘
+                                                    │
+                                                    ▼
+┌───────────────────────────────┐    ┌───────────────────────────────┐
+│       Main.py aguarda         │◀──│        Ponto batido +         │
+│         horário exato         │    │         E-mail enviado        │
+└───────────────────────────────┘    └───────────────────────────────┘
 ```
 
 ### Por que usar cron externo?
