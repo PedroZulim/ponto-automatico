@@ -76,7 +76,9 @@ class PontoBot:
             btn = wait.until(
                 ec.presence_of_element_located((By.ID, "button-1021"))
             )
+            print("Aviso de Cookies carregado...")
             btn.send_keys(Keys.RETURN)
+            print("Aviso de Cookies aceito!")
 
             sleep(5)
 
@@ -84,22 +86,27 @@ class PontoBot:
             usuario = wait.until(
                 ec.presence_of_element_located((By.NAME, "userName_relogio_8001"))
             )
+            print("Campo de usuário carregado...")
             senha = wait.until(
                 ec.presence_of_element_located((By.NAME, "password_relogio_8001"))
             )
+            print("Campo de senha carregado...")
             bater = wait.until(
                 ec.presence_of_element_located((By.ID, "ext-142"))
             )
 
             print("Preenchendo credenciais e batendo ponto...")
             usuario.send_keys(self.username)
+            print("Usuário preenchido...")
             senha.send_keys(self.password)
+            print("Senha preenchida...")
             bater.send_keys(Keys.RETURN)
 
             print("Ponto enviado, aguardando confirmação...")
             resultado = wait.until(
                 ec.presence_of_element_located((By.ID, "ext-144"))
             )
+            print("Confirmação de ponto carregada...")
 
             sleep(2)
 
