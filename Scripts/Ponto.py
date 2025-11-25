@@ -21,8 +21,8 @@ class PontoBot:
         # Carrega .env localmente (no GitHub usa secrets)
         load_dotenv()
 
-        self.username = os.getenv("APDATA_USERNAME")
-        self.password = os.getenv("APDATA_PASSWORD")
+        self.username = os.getenv("APDATA_USERNAME", "Teste")
+        self.password = os.getenv("APDATA_PASSWORD", "Teste")
 
         if not self.username or not self.password:
             print(
@@ -33,7 +33,10 @@ class PontoBot:
     def _build_driver(self) -> webdriver.Chrome:
         chrome_options = Options()
         if self.headless:
-            chrome_options.add_argument("--headless=new")
+            chrome_options.add_argument("--headless=new")  # ou "--headless"
+            chrome_options.add_argument("--disable-gpu")
+            chrome_options.add_argument("--no-sandbox")
+            chrome_options.add_argument("--disable-dev-shm-usage")
 
         driver = webdriver.Chrome(options=chrome_options)
         print("Navegador aberto!")
