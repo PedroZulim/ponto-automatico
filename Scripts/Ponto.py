@@ -70,7 +70,7 @@ class PontoBot:
             # Carregamento inicial da página
             # (tempo extra para certeza em ambientes mais lentos)
             from time import sleep
-            sleep(4)
+            sleep(5)
 
             # espera o botão inicial ficar clicável
             btn = wait.until(
@@ -78,7 +78,7 @@ class PontoBot:
             )
             btn.send_keys(Keys.RETURN)
 
-            sleep(2)
+            sleep(5)
 
             # espera os campos de usuário e senha aparecerem
             usuario = wait.until(
@@ -101,8 +101,7 @@ class PontoBot:
                 ec.presence_of_element_located((By.ID, "ext-144"))
             )
 
-            from time import sleep as tsleep
-            tsleep(2)
+            sleep(2)
 
             texto_resultado = resultado.text
             print("Resultado da batida de ponto:")
