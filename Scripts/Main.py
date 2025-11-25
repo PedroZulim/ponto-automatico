@@ -7,10 +7,10 @@ from Ponto import PontoBot
 from Send_email import EmailReporter
 
 # Janelas de segurança (para não tentar o dia todo)
-ENTRADA_INICIO = time(7, 15)
+ENTRADA_INICIO = time(7, 10)
 ENTRADA_LIMITE = time(7, 23)
 
-SAIDA_INICIO = time(17, 3)
+SAIDA_INICIO = time(16, 55)
 SAIDA_LIMITE = time(17, 11)
 
 # Horários exatos em que o ponto deve ser batido

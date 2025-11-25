@@ -14,6 +14,26 @@ Este projeto automatiza o registro de ponto (entrada e saída) utilizando GitHub
 - ✅ Envia notificações por e-mail sobre o status
 - ✅ **Funciona em repositórios privados**
 
+## 🚀 Modos de Operação
+
+Este projeto pode ser configurado de duas formas:
+
+### Modo 1: GitHub Actions Scheduled (Padrão)
+Usa apenas o cron do GitHub Actions. Configuração no arquivo `.github/workflows/ponto.yml`.
+
+**Prós:** Simples, tudo no GitHub  
+**Contras:** Pode ter atrasos de alguns minutos
+
+### Modo 2: Cron Externo + GitHub Actions (Recomendado)
+Usa um serviço de cron online gratuito (cron-job.org) para disparar o GitHub Actions.
+
+**Prós:** Mais confiável, notificações, histórico  
+**Contras:** Requer configuração externa
+
+📖 **[Guia completo de configuração com cron externo →](CRON_ONLINE_SETUP.md)**
+
+---
+
 ## 🚀 Como usar em seu repositório privado
 
 ### Pré-requisitos
@@ -21,6 +41,7 @@ Este projeto automatiza o registro de ponto (entrada e saída) utilizando GitHub
 1. Um repositório privado no GitHub (sim, GitHub Actions funciona em repositórios privados!)
 2. Credenciais do sistema APDATA
 3. (Opcional) Conta de e-mail Gmail para notificações
+4. (Opcional) Conta no cron-job.org para modo com cron externo
 
 ### Configuração Passo a Passo
 
@@ -50,32 +71,39 @@ Para que a action funcione no seu repositório privado, você precisa configurar
 5. Crie uma nova senha de app para "Mail"
 6. Use essa senha no secret `EMAIL_PASSWORD`
 
-#### 3. Ajuste os horários (opcional)
+#### 3. Escolha o modo de operação
 
-Os horários estão configurados em dois arquivos:
+**Opção A: Cron Externo (Recomendado)**
+- Siga o guia completo: **[CRON_ONLINE_SETUP.md](CRON_ONLINE_SETUP.md)**
+- Configure cron-job.org para disparar às 07:20 e 17:08
+- Workflow `ponto.yml` já está configurado com `workflow_dispatch`
 
-**`.github/workflows/ponto.yml`** - Horários de execução do workflow:
-```yaml
-schedule:
-  - cron: "0 10 * * 1-5"  # 10:00 UTC = 07:00 BRT (inicia antes da entrada)
-  - cron: "55 19 * * 1-5" # 19:55 UTC = 16:55 BRT (inicia antes da saída)
-```
-> O workflow inicia alguns minutos antes do horário de batida para dar tempo ao script aguardar o momento exato.
+**Opção B: GitHub Actions Scheduled**
+- Adicione o schedule no arquivo `.github/workflows/ponto.yml`:
+  ```yaml
+  on:
+    schedule:
+      - cron: "20 10 * * 1-5"  # 10:20 UTC = 07:20 BRT
+      - cron: "8 20 * * 1-5"   # 20:08 UTC = 17:08 BRT
+    workflow_dispatch:
+  ```
 
-**`Scripts/Main.py`** - Horários exatos de entrada e saída:
+#### 4. Ajuste os horários de batida (opcional)
+
+**`Scripts/Main.py`** - Horários exatos em que o ponto é batido:
 ```python
-TARGET_ENTRADA = "07:22"  # Horário desejado de entrada
-TARGET_SAIDA = "17:10"    # Horário desejado de saída
+TARGET_ENTRADA = "07:22"  # Horário exato de entrada
+TARGET_SAIDA = "17:10"    # Horário exato de saída
 ```
-> O script aguarda até atingir estes horários exatos para bater o ponto, mesmo que o workflow tenha iniciado antes.
+> O script aguarda o horário exato dentro da janela configurada.
 
-#### 4. Habilite o GitHub Actions
+#### 5. Habilite o GitHub Actions
 
 1. Vá em **Actions** no seu repositório
 2. Se necessário, clique em **I understand my workflows, go ahead and enable them**
 3. O workflow está configurado para executar automaticamente
 
-#### 5. Teste manualmente (opcional)
+#### 6. Teste manualmente (opcional)
 
 1. Vá em **Actions** no seu repositório
 2. Selecione o workflow **"Bater ponto automático"**

@@ -5,9 +5,6 @@ name: Bater ponto automático
 # Para mais informações, consulte o README.md
 
 on:
-  schedule:
-    - cron: "45 9 * * 1-5"  # 09:45 UTC = 06:45 BRT (antes da entrada às 07:22)
-    - cron: "40 19 * * 1-5"  # 19:40 UTC = 16:40 BRT (antes da saída às 17:10)
   workflow_dispatch:
 
 jobs:
