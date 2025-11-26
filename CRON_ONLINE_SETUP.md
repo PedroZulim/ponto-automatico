@@ -103,19 +103,8 @@ Os horários do cron devem ser configurados para disparar **alguns minutos antes
      Header name: Accept
      Header value: application/vnd.github+json
      ```
-     
-     **Header 3:**
-     ```
-     Header name: X-GitHub-Api-Version
-     Header value: 2022-11-28
-     ```
 
-5. **Aba: Notifications**
-   - ✅ **Enable notifications**
-   - ✅ **On failure** (notifica se der erro)
-   - ⬜ On success (opcional)
-
-6. Clique em **"Create cronjob"**
+5. Clique em **"Create cronjob"**
 
 ### 4️⃣ Configurar Cron de Saída
 
@@ -141,7 +130,7 @@ Repita o **Passo 3**, alterando apenas:
    - ❌ **404** = URL incorreta
 
 5. Verifique no GitHub:
-   - Acesse: https://github.com/PedroZulim/ponto-automatico/actions
+   - Acesse: https://github.com/SEU_USUARIO/ponto-automatico/actions
    - Deve aparecer uma nova execução do workflow
 
 ---
@@ -177,29 +166,7 @@ Você receberá e-mails em duas situações:
 
 ### Cronograma Completo
 
-Os horários são configurados no arquivo `config.json`:
-
-```json
-{
-  "horarios": {
-    "entrada": {
-      "horario_exato": "07:22",
-      "janela_inicio": "07:10",
-      "janela_limite": "07:23"
-    },
-    "saida": {
-      "horario_exato": "17:10",
-      "janela_inicio": "16:55",
-      "janela_limite": "17:11"
-    }
-  },
-  "sistema": {
-    "timezone": "America/Sao_Paulo",
-    "intervalo_verificacao_segundos": 30,
-    "modo_headless": true
-  }
-}
-```
+Os horários são configurados no arquivo `config.json`
 
 **Exemplo de fluxo:**
 
@@ -363,46 +330,6 @@ Não marque outras permissões desnecessárias.
 - **Limite Free:** 2000 minutos/mês
 - **Sobra:** ~1800+ minutos
 
----
-
-## 🔄 Alternativas
-
-### Opção 1: EasyCron
-
-Similar ao cron-job.org, com interface mais simples.
-
-**Link:** https://www.easycron.com
-
-**Limite gratuito:** 20 cron jobs
-
-### Opção 2: Render.com
-
-Hospeda script Python com cron nativo.
-
-**Link:** https://render.com
-
-**Prós:**
-- ✅ Controle total do código
-- ✅ Logs completos
-
-**Contras:**
-- ⚠️ Precisa de cartão de crédito
-- ⚠️ Setup mais complexo
-
-### Opção 3: GitHub Actions Scheduled
-
-Usar apenas o cron do GitHub Actions (sem serviço externo).
-
-**Prós:**
-- ✅ Tudo no GitHub
-- ✅ Nada exposto externamente
-
-**Contras:**
-- ⚠️ Menos confiável (pode atrasar)
-- ⚠️ Não garante horário exato
-
----
-
 ## 📚 Recursos Adicionais
 
 ### Documentação do Projeto
@@ -423,29 +350,6 @@ Usar apenas o cron do GitHub Actions (sem serviço externo).
   ```bash
   curl -H "Authorization: Bearer ghp_seu_token" https://api.github.com/user
   ```
-
-### Suporte
-
-- **Issues:** https://github.com/PedroZulim/ponto-automatico/issues
-- **Cron-Job.org Support:** support@cron-job.org
-
----
-
-## ✅ Checklist de Configuração
-
-Use esta lista para garantir que tudo está configurado:
-
-- [ ] Token do GitHub criado com permissões `repo` + `workflow`
-- [ ] Conta no cron-job.org criada e confirmada
-- [ ] Cron job de entrada (07:20) criado e testado
-- [ ] Cron job de saída (17:08) criado e testado
-- [ ] Timezone configurado para `America/Sao_Paulo`
-- [ ] Headers configurados corretamente (Authorization, Accept, X-GitHub-Api-Version)
-- [ ] Teste manual executado com sucesso (status 204)
-- [ ] Workflow disparou no GitHub Actions
-- [ ] Secrets configuradas no GitHub (APDATA_USERNAME, APDATA_PASSWORD)
-- [ ] E-mail de notificação testado (opcional)
-- [ ] Notificações do cron-job.org habilitadas
 
 ---
 

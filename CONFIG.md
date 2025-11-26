@@ -8,29 +8,7 @@ O arquivo `config.json` deve estar localizado na **raiz do projeto**, no mesmo n
 
 ## 🏗️ Estrutura Completa
 
-```json
-{
-  "horarios": {
-    "entrada": {
-      "horario_exato": "07:22",
-      "janela_inicio": "07:10",
-      "janela_limite": "07:23"
-    },
-    "saida": {
-      "horario_exato": "17:10",
-      "janela_inicio": "16:55",
-      "janela_limite": "17:11"
-    }
-  },
-  "sistema": {
-    "timezone": "America/Sao_Paulo",
-    "intervalo_verificacao_segundos": 30,
-    "modo_headless": true
-  }
-}
-```
-
-> **Nota sobre e-mails:** As credenciais de e-mail (EMAIL_SENDER e EMAIL_PASSWORD) são configuradas via variáveis de ambiente, não no arquivo config.json. Veja o arquivo .env.example para mais detalhes.
+> **Nota sobre e-mails:** As credenciais de e-mail (EMAIL_SENDER e EMAIL_PASSWORD) são configuradas via variáveis de ambiente, não no arquivo config.json.
 
 ## ⛙️ Opções de Configuração
 
@@ -100,7 +78,7 @@ Configurações gerais do sistema.
 
 ## 📝 Exemplos de Uso
 
-### Exemplo 1: Horário comercial padrão
+### Exemplo: Horário comercial padrão
 
 ```json
 {
@@ -120,54 +98,6 @@ Configurações gerais do sistema.
     "timezone": "America/Sao_Paulo",
     "intervalo_verificacao_segundos": 30,
     "modo_headless": true
-  }
-}
-```
-
-### Exemplo 2: Turno alternativo
-
-```json
-{
-  "horarios": {
-    "entrada": {
-      "horario_exato": "14:00",
-      "janela_inicio": "13:50",
-      "janela_limite": "14:02"
-    },
-    "saida": {
-      "horario_exato": "22:00",
-      "janela_inicio": "21:50",
-      "janela_limite": "22:02"
-    }
-  },
-  "sistema": {
-    "timezone": "America/Sao_Paulo",
-    "intervalo_verificacao_segundos": 30,
-    "modo_headless": true
-  }
-}
-```
-
-### Exemplo 3: Debug local (navegador visível)
-
-```json
-{
-  "horarios": {
-    "entrada": {
-      "horario_exato": "07:22",
-      "janela_inicio": "07:10",
-      "janela_limite": "07:23"
-    },
-    "saida": {
-      "horario_exato": "17:10",
-      "janela_inicio": "16:55",
-      "janela_limite": "17:11"
-    }
-  },
-  "sistema": {
-    "timezone": "America/Sao_Paulo",
-    "intervalo_verificacao_segundos": 10,
-    "modo_headless": false
   }
 }
 ```
@@ -198,51 +128,6 @@ O sistema valida automaticamente o arquivo `config.json` ao iniciar:
 - ✅ Verifica formato dos horários (HH:MM)
 
 Se houver erro de validação, o script será interrompido com uma mensagem clara do problema.
-
-## 🚨 Erros Comuns
-
-### Erro: "Arquivo de configuração não encontrado"
-**Causa:** O arquivo `config.json` não existe na raiz do projeto.
-
-**Solução:**
-```bash
-cp config.example.json config.json
-```
-
-### Erro: "Formato de horário inválido"
-**Causa:** Horário não está no formato `HH:MM`.
-
-**Exemplo errado:** `"7:22"`, `"07:22:00"`, `"07h22"`
-
-**Exemplo correto:** `"07:22"`
-
-### Erro: "Configuração obrigatória 'X' não encontrada"
-**Causa:** Falta uma seção ou campo obrigatório no JSON.
-
-**Solução:** Compare seu `config.json` com o `config.example.json` e adicione os campos faltantes.
-
-## 💡 Dicas
-
-1. **Mantenha uma cópia de backup**: Antes de fazer grandes alterações, faça uma cópia do `config.json`
-
-2. **Teste localmente primeiro**: Antes de fazer commit de novas configurações, teste localmente para garantir que funciona
-
-3. **Janelas realistas**: Configure janelas que dão tempo suficiente para o GitHub Actions iniciar (2-3 minutos antes do horário exato)
-
-4. **Use comentários (com cuidado)**: JSON padrão não suporta comentários, mas você pode adicionar um campo `"_comentario"` que será ignorado:
-   ```json
-   {
-     "_comentario": "Esta configuração é para o turno da manhã",
-     "horarios": {
-       ...
-     }
-   }
-   ```
-
-5. **Versionamento**: Faça commits descritivos ao alterar configurações:
-   ```bash
-   git commit -m "Ajusta horário de entrada para 08:00"
-   ```
 
 ## 🔗 Relacionado
 
