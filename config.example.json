@@ -1,15 +1,15 @@
 {
   "horarios": {
     "entrada": {
-      "horario_exato": "07:22",
-      "janela_inicio": "07:10",
-      "janela_limite": "07:23",
+      "horario_exato": "HH:MM",
+      "janela_inicio": "HH:MM",
+      "janela_limite": "HH:MM",
       "comentario": "Ajuste o horário exato para o horário desejado de entrada"
     },
     "saida": {
-      "horario_exato": "17:10",
-      "janela_inicio": "16:55",
-      "janela_limite": "17:11",
+      "horario_exato": "HH:MM",
+      "janela_inicio": "HH:MM",
+      "janela_limite": "HH:MM",
       "comentario": "Ajuste o horário exato para o horário desejado de saída"
     }
   },
@@ -18,5 +18,6 @@
     "intervalo_verificacao_segundos": 30,
     "modo_headless": true,
     "comentario": "intervalo_verificacao_segundos: tempo entre verificações de horário. Credenciais de e-mail vêm das variáveis de ambiente EMAIL_SENDER e EMAIL_PASSWORD."
-  }
+  },
+  "comentario": "Remova todos os comentários antes de usar o arquivo de configuração.(Incluindo Esse)"
 }
