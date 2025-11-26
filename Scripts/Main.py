@@ -40,7 +40,7 @@ def _identificar_periodo_por_horario_exato(hora_minuto: str) -> str | None:
 def main() -> None:
     feriados = Feriados()
     reporter = EmailReporter()
-    ponto_bot = PontoBot(feriados=feriados, headless=True)
+    ponto_bot = PontoBot(feriados=feriados, headless=False)
 
     # Validação inicial: dia útil / feriado
     pode_bater, msg_validacao = feriados.can_mark_today()
