@@ -51,7 +51,15 @@ Este guia mostra como configurar um **serviço de cron online gratuito** (cron-j
 3. Preencha seus dados
 4. Confirme o e-mail
 
-### 3️⃣ Configurar Cron de Entrada (07:20)
+### 3️⃣ Configurar Cron de Entrada
+
+Os horários do cron devem ser configurados para disparar **alguns minutos antes** do horário real de batida do ponto (configurado no `config.json`).
+
+**Valores padrão no config.json:**
+- Entrada: 07:22
+- Saída: 17:10
+
+**Recomendação:** Configure o cron para disparar 2 minutos antes.
 
 1. No dashboard, clique em **"Create cronjob"**
 
@@ -59,12 +67,13 @@ Este guia mostra como configurar um **serviço de cron online gratuito** (cron-j
    - **Title:** `Ponto - Entrada 07:20`
    - **Address (URL):**
      ```
-     https://api.github.com/repos/PedroZulim/ponto-automatico/actions/workflows/ponto.yml/dispatches
+     https://api.github.com/repos/SEU_USUARIO/ponto-automatico/actions/workflows/ponto.yml/dispatches
      ```
+     ⚠️ Substitua `SEU_USUARIO` pelo seu usuário do GitHub
 
 3. **Aba: Schedule**
    - **Hours:** `07`
-   - **Minutes:** `20`
+   - **Minutes:** `20` (2 min antes de 07:22)
    - **Days:**
      - ✅ Monday (Segunda)
      - ✅ Tuesday (Terça)
@@ -108,16 +117,18 @@ Este guia mostra como configurar um **serviço de cron online gratuito** (cron-j
 
 6. Clique em **"Create cronjob"**
 
-### 4️⃣ Configurar Cron de Saída (17:08)
+### 4️⃣ Configurar Cron de Saída
 
 Repita o **Passo 3**, alterando apenas:
 
 - **Title:** `Ponto - Saída 17:08`
 - **Schedule:**
   - **Hours:** `17`
-  - **Minutes:** `08`
+  - **Minutes:** `08` (2 min antes de 17:10)
 
 (Mantenha todos os outros campos iguais)
+
+**💡 Dica:** Se você alterou os horários no `config.json`, ajuste os horários aqui para 2-3 minutos antes do `horario_exato` configurado.
 
 ### 5️⃣ Testar a Configuração
 
@@ -166,6 +177,32 @@ Você receberá e-mails em duas situações:
 
 ### Cronograma Completo
 
+Os horários são configurados no arquivo `config.json`:
+
+```json
+{
+  "horarios": {
+    "entrada": {
+      "horario_exato": "07:22",
+      "janela_inicio": "07:10",
+      "janela_limite": "07:23"
+    },
+    "saida": {
+      "horario_exato": "17:10",
+      "janela_inicio": "16:55",
+      "janela_limite": "17:11"
+    }
+  },
+  "sistema": {
+    "timezone": "America/Sao_Paulo",
+    "intervalo_verificacao_segundos": 30,
+    "modo_headless": true
+  }
+}
+```
+
+**Exemplo de fluxo:**
+
 | Cron Dispara | GitHub Actions Inicia | Main.py Aguarda | Ponto Batido |
 |--------------|----------------------|-----------------|--------------|
 | 07:20 | ~07:20-07:22 | Até 07:22 | 07:22 exato |
@@ -173,10 +210,31 @@ Você receberá e-mails em duas situações:
 
 ### Por que disparar antes?
 
-- **Cron-Job.org:** dispara no horário exato (07:20)
+- **Cron-Job.org:** dispara no horário exato (ex: 07:20)
 - **GitHub Actions:** pode levar 1-3 minutos para iniciar
-- **Main.py:** aguarda o horário exato dentro da janela (07:22)
+- **Main.py:** aguarda o `horario_exato` configurado dentro da janela (ex: 07:22)
 - **Resultado:** ponto batido no horário desejado ✅
+
+### Como ajustar os horários?
+
+**Opção 1: Via GitHub Web Interface**
+1. Acesse seu repositório no GitHub
+2. Navegue até o arquivo `config.json`
+3. Clique no ícone de lápis (editar)
+4. Altere os valores de `horario_exato`, `janela_inicio` e `janela_limite`
+5. Faça o commit das alterações
+
+**Opção 2: Localmente**
+1. Clone o repositório
+2. Edite o arquivo `config.json`
+3. Commit e push:
+   ```bash
+   git add config.json
+   git commit -m "Ajusta horários de ponto"
+   git push
+   ```
+
+**⚠️ Lembre-se:** Após alterar o `config.json`, ajuste também os horários de disparo no cron-job.org para alguns minutos antes do `horario_exato`.
 
 ---
 
@@ -199,13 +257,13 @@ Você receberá e-mails em duas situações:
 **Solução:**
 1. Verifique a URL:
    ```
-   https://api.github.com/repos/PedroZulim/ponto-automatico/actions/workflows/ponto.yml/dispatches
+   https://api.github.com/repos/SEU_USUARIO/ponto-automatico/actions/workflows/ponto.yml/dispatches
    ```
 2. Confirme que:
-   - Owner: `PedroZulim`
-   - Repo: `ponto-automatico`
+   - Owner: Seu nome de usuário do GitHub
+   - Repo: `ponto-automatico` (ou o nome do seu repositório)
    - Workflow: `ponto.yml`
-3. Verifique se o arquivo `.github/workflows/ponto.yml` existe
+3. Verifique se o arquivo `.github/workflows/ponto.yml` existe no repositório
 
 ### ❌ Cron dispara mas workflow não executa
 
@@ -234,13 +292,26 @@ Você receberá e-mails em duas situações:
 
 ### ⏰ Horário incorreto
 
-**Causa:** Timezone errado no cron-job.org
+**Causa:** Timezone errado no cron-job.org ou `config.json`
 
 **Solução:**
+
+**No cron-job.org:**
 1. Edite o cronjob
 2. Aba **Schedule**
 3. **Timezone:** selecione `America/Sao_Paulo`
 4. Salve
+
+**No config.json:**
+1. Verifique se a timezone está correta:
+   ```json
+   {
+     "sistema": {
+       "timezone": "America/Sao_Paulo"
+     }
+   }
+   ```
+2. Commit e push se fizer alterações
 
 ---
 
@@ -333,6 +404,11 @@ Usar apenas o cron do GitHub Actions (sem serviço externo).
 ---
 
 ## 📚 Recursos Adicionais
+
+### Documentação do Projeto
+
+- **[CONFIG.md](CONFIG.md):** Documentação completa do arquivo `config.json`
+- **[README.md](README.md):** Documentação principal do projeto
 
 ### Documentação Oficial
 
