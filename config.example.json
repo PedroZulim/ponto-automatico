@@ -1,0 +1,23 @@
+{
+  "horarios": {
+    "entrada": {
+      "horario_exato": "HH:MM",
+      "janela_inicio": "HH:MM",
+      "janela_limite": "HH:MM",
+      "comentario": "Ajuste o horário exato para o horário desejado de entrada"
+    },
+    "saida": {
+      "horario_exato": "HH:MM",
+      "janela_inicio": "HH:MM",
+      "janela_limite": "HH:MM",
+      "comentario": "Ajuste o horário exato para o horário desejado de saída"
+    }
+  },
+  "sistema": {
+    "timezone": "America/Sao_Paulo",
+    "intervalo_verificacao_segundos": 30,
+    "modo_headless": true,
+    "comentario": "intervalo_verificacao_segundos: tempo entre verificações de horário. Credenciais de e-mail vêm das variáveis de ambiente EMAIL_SENDER e EMAIL_PASSWORD."
+  },
+  "comentario": "Remova todos os comentários antes de usar o arquivo de configuração.(Incluindo Esse)"
+}

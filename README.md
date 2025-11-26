@@ -2,7 +2,7 @@
 
 Sistema automatizado para registro de ponto de entrada e saída usando GitHub Actions.
 
-> **✅ Sim, funciona em repositórios privados!** Para mais informações sobre como usar GitHub Actions em repositórios privados, veja [este guia detalhado](GITHUB_ACTIONS_PRIVATE_REPO.md).
+> **✅ Sim, funciona em repositórios privados!** Para mais informações sobre como usar GitHub Actions em repositórios privados, veja este guia detalhado.
 
 ## 📋 Descrição
 
@@ -16,21 +16,16 @@ Este projeto automatiza o registro de ponto (entrada e saída) utilizando GitHub
 
 ## 🚀 Modos de Operação
 
-Este projeto pode ser configurado de duas formas:
+Este projeto pode ser configurado utilizando:
 
-### Modo 1: GitHub Actions Scheduled (Padrão)
-Usa apenas o cron do GitHub Actions. Configuração no arquivo `.github/workflows/ponto.yml`.
-
-**Prós:** Simples, tudo no GitHub  
-**Contras:** Pode ter atrasos de alguns minutos
-
-### Modo 2: Cron Externo + GitHub Actions (Recomendado)
+### Cron Externo + GitHub Actions (Recomendado)
 Usa um serviço de cron online gratuito (cron-job.org) para disparar o GitHub Actions.
 
 **Prós:** Mais confiável, notificações, histórico  
 **Contras:** Requer configuração externa
 
-📖 **[Guia completo de configuração com cron externo →](CRON_ONLINE_SETUP.md)**
+📖 **[Guia completo de configuração com cron externo →](CRON_ONLINE_SETUP.md)**  
+📖 **[Documentação completa do arquivo de configuração →](CONFIG.md)**
 
 ---
 
@@ -41,7 +36,7 @@ Usa um serviço de cron online gratuito (cron-job.org) para disparar o GitHub Ac
 1. Um repositório privado no GitHub (sim, GitHub Actions funciona em repositórios privados!)
 2. Credenciais do sistema APDATA
 3. (Opcional) Conta de e-mail Gmail para notificações
-4. (Opcional) Conta no cron-job.org para modo com cron externo
+4. Conta no cron-job.org para scheduler externo utilziando API do GitHub Actions
 
 ### Configuração Passo a Passo
 
@@ -71,37 +66,62 @@ Para que a action funcione no seu repositório privado, você precisa configurar
 5. Crie uma nova senha de app para "Mail"
 6. Use essa senha no secret `EMAIL_PASSWORD`
 
-#### 3. Escolha o modo de operação
+#### 3. Siga o guia de operação do scheduler externo
 
-**Opção A: Cron Externo (Recomendado)**
 - Siga o guia completo: **[CRON_ONLINE_SETUP.md](CRON_ONLINE_SETUP.md)**
 - Configure cron-job.org para disparar às 07:20 e 17:08
 - Workflow `ponto.yml` já está configurado com `workflow_dispatch`
 
-**Opção B: GitHub Actions Scheduled**
-- Adicione o schedule no arquivo `.github/workflows/ponto.yml`:
-  ```yaml
-  on:
-    schedule:
-      - cron: "20 10 * * 1-5"  # 10:20 UTC = 07:20 BRT
-      - cron: "8 20 * * 1-5"   # 20:08 UTC = 17:08 BRT
-    workflow_dispatch:
-  ```
+#### 4. Configure os horários de batida
 
-#### 4. Ajuste os horários de batida (opcional)
+Este projeto utiliza um arquivo de configuração centralizado para facilitar ajustes.
 
-**`Scripts/Main.py`** - Horários exatos em que o ponto é batido:
-```python
-TARGET_ENTRADA = "07:22"  # Horário exato de entrada
-TARGET_SAIDA = "17:10"    # Horário exato de saída
+**Passo 1: Copie o arquivo de exemplo**
+```bash
+cp config.example.json config.json
 ```
-> O script aguarda o horário exato dentro da janela configurada.
+
+**Passo 2: Edite o arquivo `config.json`** para ajustar os horários:
+
+```json
+{
+  "horarios": {
+    "entrada": {
+      "horario_exato": "08:00",
+      "janela_inicio": "07:58",
+      "janela_limite": "08:01"
+    },
+    "saida": {
+      "horario_exato": "17:48",
+      "janela_inicio": "17:46",
+      "janela_limite": "17:49"
+    }
+  },
+  "sistema": {
+    "timezone": "America/Sao_Paulo",
+    "intervalo_verificacao_segundos": 30,
+    "modo_headless": true
+  }
+}
+```
+
+**Parâmetros principais:**
+
+- `horario_exato`: Horário preciso em que o ponto será batido (formato HH:MM)
+- `janela_inicio`: Início da janela de verificação (o script só tentará bater ponto após este horário)
+- `janela_limite`: Fim da janela de verificação (se passar deste horário, o ponto não será batido)
+- `intervalo_verificacao_segundos`: Tempo de espera entre verificações de horário
+- `modo_headless`: Se `true`, o navegador roda invisível (sem abrir janela)
+
+> ⚠️ **Importante 1**: O GitHub Actions deve ser agendado para disparar alguns minutos ANTES do `horario_exato` para dar tempo do workflow iniciar e aguardar o horário correto.
+
+> ⚠️ **Importante 2**: O GitHub Actions não consegue rodar o navegador se não estiver no `modo_headless`, matenha sempre `true`.
 
 #### 5. Habilite o GitHub Actions
 
 1. Vá em **Actions** no seu repositório
 2. Se necessário, clique em **I understand my workflows, go ahead and enable them**
-3. O workflow está configurado para executar automaticamente
+3. O workflow está configurado
 
 #### 6. Teste manualmente (opcional)
 
@@ -146,10 +166,15 @@ Este workflow consome aproximadamente **2-3 minutos por execução**. Com 2 exec
 │   ├── Main.py                # Script principal
 │   ├── Ponto.py               # Lógica de registro de ponto
 │   ├── Feriados.py            # Verificação de feriados
-│   └── Send_email.py          # Envio de notificações
+│   ├── Send_email.py          # Envio de notificações
+│   └── Config.py              # Gerenciador de configurações
+├── config.json                # Arquivo de configuração (horários, etc)
+├── config.example.json        # Exemplo de arquivo de configuração
 ├── .env.example               # Exemplo de variáveis de ambiente
 ├── requirements.txt           # Dependências Python
-└── README.md                  # Este arquivo
+├── README.md                  # Este arquivo
+├── CONFIG.md                  # Documentação detalhada de configuração
+└── CRON_ONLINE_SETUP.md       # Guia de configuração com cron externo
 ```
 
 ## 🛠️ Desenvolvimento Local
@@ -157,16 +182,27 @@ Este workflow consome aproximadamente **2-3 minutos por execução**. Com 2 exec
 Se quiser testar localmente antes de usar no GitHub Actions:
 
 1. Clone o repositório
-2. Copie `.env.example` para `.env`
-3. Preencha suas credenciais no arquivo `.env`
-4. Instale as dependências:
-```bash
-pip install -r requirements.txt
-```
-5. Execute o script:
-```bash
-python Scripts/Main.py
-```
+2. Copie `config.example.json` para `config.json` e ajuste os horários:
+   ```bash
+   cp config.example.json config.json
+   ```
+3. Instale as dependências:
+   ```bash
+   pip install -r requirements.txt
+   ```
+4. Execute o script:
+   ```bash
+   python Scripts/Main.py
+   ```
+
+### Testando com horários diferentes
+
+Para testar o sistema, você pode:
+
+1. Editar `config.json` com um horário próximo (ex: 2 minutos no futuro)
+2. Ajustar as janelas para cobrir esse horário
+3. Executar `python Scripts/Main.py`
+4. O script aguardará até o horário exato e tentará bater o ponto
 
 ## ❓ FAQ
 
@@ -186,11 +222,32 @@ Para uso básico como este (2-3 minutos por execução, 2x ao dia), o plano **gr
 Se você configurou o e-mail, receberá uma notificação. Você também pode verificar os logs na aba Actions do GitHub.
 
 ### Posso ajustar os horários?
-Sim! Edite os arquivos mencionados na seção "Ajuste os horários".
+Sim! Basta editar o arquivo `config.json` na raiz do projeto. Você pode alterar os horários de entrada e saída sem precisar modificar o código Python.
 
 ## 📝 Licença
 
 Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para mais detalhes.
+
+## 📚 Documentação Adicional
+
+- **[CONFIG.md](CONFIG.md)** - Documentação completa do arquivo `config.json` com exemplos e explicações detalhadas de cada parâmetro
+- **[CRON_ONLINE_SETUP.md](CRON_ONLINE_SETUP.md)** - Guia passo a passo para configurar o disparo automático usando cron-job.org
+
+## 🆕 Novidades da Versão Atual
+
+### Sistema de Configuração Centralizado
+
+A partir desta versão, todos os horários e configurações foram movidos para o arquivo `config.json`:
+
+- ✅ **Horários configuráveis**: Altere entrada/saída sem mexer no código Python
+- ✅ **Janelas de verificação**: Configure quando o sistema deve tentar bater ponto
+- ✅ **Validação automática**: O sistema valida o JSON e os horários ao iniciar
+- ✅ **Fácil manutenção**: Um único arquivo para todas as configurações
+
+**Para usuários de versões antigas:**
+1. Copie `config.example.json` para `config.json`
+2. Ajuste os horários conforme necessário
+3. Commit e push das alterações
 
 ## 🤝 Contribuições
 

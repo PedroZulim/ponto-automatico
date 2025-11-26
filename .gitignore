@@ -170,7 +170,16 @@ cython_debug/
 # PyPI configuration file
 .pypirc
 
+# Arquivos de configuração com dados pessoais
 Testes
 config.txt
 .config
 secret.key
+
+# Arquivo de configuração local (se você não quiser commitá-lo)
+# Descomente a linha abaixo se preferir não versionar seu config.json
+# config.json
+
+# Nota: Por padrão, config.json É versionado para funcionar no GitHub Actions.
+# Se você fizer fork do projeto, lembre-se de ajustar os horários no config.json
+# ou adicione "config.json" no .gitignore e configure via GitHub web interface.

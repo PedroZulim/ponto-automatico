@@ -14,9 +14,10 @@ from selenium.webdriver.support.ui import WebDriverWait
 
 
 class PontoBot:
-    def __init__(self, feriados: Feriados | None = None, headless: bool = True) -> None:
-        self.feriados = feriados or Feriados()
+    def __init__(self, feriados: Feriados | None = None, headless: bool = True, timezone: str = "America/Sao_Paulo") -> None:
+        self.feriados = feriados or Feriados(timezone=timezone)
         self.headless = headless
+        self.timezone = timezone
 
         # Carrega .env localmente (no GitHub usa secrets)
         load_dotenv()
@@ -117,7 +118,7 @@ class PontoBot:
             periodo_label = periodo or "Ponto"
             msg = (
                 f"{periodo_label} batido com sucesso em "
-                f"{datetime.now(tz=ZoneInfo('America/Sao_Paulo')).strftime('%d/%m/%Y %H:%M:%S')}.\n\n"
+                f"{datetime.now(tz=ZoneInfo(self.timezone)).strftime('%d/%m/%Y %H:%M:%S')}.\n\n"
                 f"Mensagem do sistema:\n{texto_resultado}"
             )
             return "Sucesso", msg
@@ -127,7 +128,7 @@ class PontoBot:
             print(f"ERRO AO BATER PONTO: {e}")
             msg = f"""Erro ao bater ponto em {
                 datetime
-                    .now(tz=ZoneInfo('America/Sao_Paulo'))
+                    .now(tz=ZoneInfo(self.timezone))
                     .strftime('%d/%m/%Y %H:%M:%S')
                 }: {e}"""
             return "Erro", msg

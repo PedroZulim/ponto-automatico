@@ -7,8 +7,9 @@ import requests
 
 
 class Feriados:
-    def __init__(self, ano: int | None = None) -> None:
-        self.ano = ano or datetime.now(tz=ZoneInfo("America/Sao_Paulo")).year
+    def __init__(self, ano: int | None = None, timezone: str = "America/Sao_Paulo") -> None:
+        self.timezone = timezone
+        self.ano = ano or datetime.now(tz=ZoneInfo(self.timezone)).year
         self._cache_datas: List[str] | None = None
 
     def _carregar_feriados(self) -> None:
@@ -31,7 +32,7 @@ class Feriados:
         return self._cache_datas or []
 
     def is_feriado_hoje(self) -> bool:
-        hoje_str = datetime.now(tz=ZoneInfo("America/Sao_Paulo")).strftime("%Y-%m-%d")
+        hoje_str = datetime.now(tz=ZoneInfo(self.timezone)).strftime("%Y-%m-%d")
         return hoje_str in self.get_feriados()
 
     def can_mark_today(self) -> Tuple[bool, str]:
@@ -39,7 +40,7 @@ class Feriados:
         Retorna (pode_bater, mensagem).
         Centraliza a lógica de dia útil + feriado.
         """
-        hoje_semana = datetime.now(tz=ZoneInfo("America/Sao_Paulo")).weekday()  # 0 = segunda, 6 = domingo
+        hoje_semana = datetime.now(tz=ZoneInfo(self.timezone)).weekday()  # 0 = segunda, 6 = domingo
 
         if not (0 <= hoje_semana <= 4):
             msg = "Hoje não é dia útil (sábado ou domingo), não vou bater ponto."
