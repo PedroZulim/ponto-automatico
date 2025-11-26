@@ -16,15 +16,9 @@ Este projeto automatiza o registro de ponto (entrada e saída) utilizando GitHub
 
 ## 🚀 Modos de Operação
 
-Este projeto pode ser configurado de duas formas:
+Este projeto pode ser configurado utilizando:
 
-### Modo 1: GitHub Actions Scheduled (Padrão)
-Usa apenas o cron do GitHub Actions. Configuração no arquivo `.github/workflows/ponto.yml`.
-
-**Prós:** Simples, tudo no GitHub  
-**Contras:** Pode ter atrasos de alguns minutos
-
-### Modo 2: Cron Externo + GitHub Actions (Recomendado)
+### Cron Externo + GitHub Actions (Recomendado)
 Usa um serviço de cron online gratuito (cron-job.org) para disparar o GitHub Actions.
 
 **Prós:** Mais confiável, notificações, histórico  
@@ -42,7 +36,7 @@ Usa um serviço de cron online gratuito (cron-job.org) para disparar o GitHub Ac
 1. Um repositório privado no GitHub (sim, GitHub Actions funciona em repositórios privados!)
 2. Credenciais do sistema APDATA
 3. (Opcional) Conta de e-mail Gmail para notificações
-4. (Opcional) Conta no cron-job.org para modo com cron externo
+4. Conta no cron-job.org para scheduler externo utilziando API do GitHub Actions
 
 ### Configuração Passo a Passo
 
@@ -72,22 +66,11 @@ Para que a action funcione no seu repositório privado, você precisa configurar
 5. Crie uma nova senha de app para "Mail"
 6. Use essa senha no secret `EMAIL_PASSWORD`
 
-#### 3. Escolha o modo de operação
+#### 3. Siga o guia de operação do scheduler externo
 
-**Opção A: Cron Externo (Recomendado)**
 - Siga o guia completo: **[CRON_ONLINE_SETUP.md](CRON_ONLINE_SETUP.md)**
 - Configure cron-job.org para disparar às 07:20 e 17:08
 - Workflow `ponto.yml` já está configurado com `workflow_dispatch`
-
-**Opção B: GitHub Actions Scheduled**
-- Adicione o schedule no arquivo `.github/workflows/ponto.yml`:
-  ```yaml
-  on:
-    schedule:
-      - cron: "20 10 * * 1-5"  # 10:20 UTC = 07:20 BRT
-      - cron: "8 20 * * 1-5"   # 20:08 UTC = 17:08 BRT
-    workflow_dispatch:
-  ```
 
 #### 4. Configure os horários de batida
 
@@ -104,14 +87,14 @@ cp config.example.json config.json
 {
   "horarios": {
     "entrada": {
-      "horario_exato": "07:22",
-      "janela_inicio": "07:10",
-      "janela_limite": "07:23"
+      "horario_exato": "08:00",
+      "janela_inicio": "07:58",
+      "janela_limite": "08:01"
     },
     "saida": {
-      "horario_exato": "17:10",
-      "janela_inicio": "16:55",
-      "janela_limite": "17:11"
+      "horario_exato": "17:48",
+      "janela_inicio": "17:46",
+      "janela_limite": "17:49"
     }
   },
   "sistema": {
@@ -130,13 +113,15 @@ cp config.example.json config.json
 - `intervalo_verificacao_segundos`: Tempo de espera entre verificações de horário
 - `modo_headless`: Se `true`, o navegador roda invisível (sem abrir janela)
 
-> ⚠️ **Importante**: O GitHub Actions deve ser agendado para disparar alguns minutos ANTES do `horario_exato` para dar tempo do workflow iniciar e aguardar o horário correto.
+> ⚠️ **Importante 1**: O GitHub Actions deve ser agendado para disparar alguns minutos ANTES do `horario_exato` para dar tempo do workflow iniciar e aguardar o horário correto.
+
+> ⚠️ **Importante 2**: O GitHub Actions não consegue rodar o navegador se não estiver no `modo_headless`, matenha sempre `true`.
 
 #### 5. Habilite o GitHub Actions
 
 1. Vá em **Actions** no seu repositório
 2. Se necessário, clique em **I understand my workflows, go ahead and enable them**
-3. O workflow está configurado para executar automaticamente
+3. O workflow está configurado
 
 #### 6. Teste manualmente (opcional)
 
@@ -201,15 +186,11 @@ Se quiser testar localmente antes de usar no GitHub Actions:
    ```bash
    cp config.example.json config.json
    ```
-3. Copie `.env.example` para `.env` e preencha suas credenciais:
-   ```bash
-   cp .env.example .env
-   ```
-4. Instale as dependências:
+3. Instale as dependências:
    ```bash
    pip install -r requirements.txt
    ```
-5. Execute o script:
+4. Execute o script:
    ```bash
    python Scripts/Main.py
    ```
