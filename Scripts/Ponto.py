@@ -10,8 +10,14 @@ import time
 
 
 class PontoBot:
-    def __init__(self, feriados: Feriados | None = None, headless: bool = True) -> None:
-        self.feriados = feriados or Feriados()
+    def __init__(
+        self,
+        feriados: Feriados | None = None,
+        headless: bool = True,
+        timezone: str = "America/Sao_Paulo",
+    ) -> None:
+        self.timezone = timezone
+        self.feriados = feriados or Feriados(timezone=self.timezone)
         self.headless = headless
 
         # Carrega .env localmente (no GitHub usa secrets)
@@ -76,7 +82,6 @@ class PontoBot:
                 try:
                     btn_cookie = page.wait_for_selector("#button-1021", timeout=15000)
                     print("Aviso de Cookies carregado...")
-                    # pode ser click() ou press("Enter")
                     btn_cookie.click()
                     print("Aviso de Cookies aceito!")
                 except TimeoutError as e:
@@ -119,7 +124,7 @@ class PontoBot:
                 periodo_label = periodo or "Ponto"
                 msg = (
                     f"{periodo_label} batido com sucesso em "
-                    f"{datetime.now(tz=ZoneInfo('America/Sao_Paulo')).strftime('%d/%m/%Y %H:%M:%S')}.\n\n"
+                    f"{datetime.now(tz=ZoneInfo(self.timezone)).strftime('%d/%m/%Y %H:%M:%S')}.\n\n"
                     f"Mensagem do sistema:\n{texto_resultado}"
                 )
 
@@ -132,17 +137,16 @@ class PontoBot:
             print(f"ERRO AO BATER PONTO (timeout): {e}")
             msg = (
                 "Timeout ao tentar bater ponto em "
-                f"{datetime.now(tz=ZoneInfo('America/Sao_Paulo')).strftime('%d/%m/%Y %H:%M:%S')}.\n"
+                f"{datetime.now(tz=ZoneInfo(self.timezone)).strftime('%d/%m/%Y %H:%M:%S')}.\n"
                 f"Detalhes: {e}"
             )
             return "Erro", msg
 
         except Exception as e:
-            # loga erro bonitinho pra debug (incluindo em Actions)
             print(f"ERRO AO BATER PONTO: {e}")
             msg = (
                 "Erro ao bater ponto em "
-                f"{datetime.now(tz=ZoneInfo('America/Sao_Paulo')).strftime('%d/%m/%Y %H:%M:%S')}.\n"
+                f"{datetime.now(tz=ZoneInfo(self.timezone)).strftime('%d/%m/%Y %H:%M:%S')}.\n"
                 f"Detalhes: {e}"
             )
             return "Erro", msg
