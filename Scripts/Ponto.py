@@ -5,19 +5,14 @@ from zoneinfo import ZoneInfo
 
 from dotenv import load_dotenv
 from Feriados import Feriados
-from selenium import webdriver
-from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.common.by import By
-from selenium.webdriver.common.keys import Keys
-from selenium.webdriver.support import expected_conditions as ec
-from selenium.webdriver.support.ui import WebDriverWait
+from playwright.sync_api import sync_playwright, TimeoutError as PlaywrightTimeoutError
+import time
 
 
 class PontoBot:
-    def __init__(self, feriados: Feriados | None = None, headless: bool = True, timezone: str = "America/Sao_Paulo") -> None:
-        self.feriados = feriados or Feriados(timezone=timezone)
+    def __init__(self, feriados: Feriados | None = None, headless: bool = True) -> None:
+        self.feriados = feriados or Feriados()
         self.headless = headless
-        self.timezone = timezone
 
         # Carrega .env localmente (no GitHub usa secrets)
         load_dotenv()
@@ -31,18 +26,9 @@ class PontoBot:
                 "Bater ponto irá falhar."
             )
 
-    def _build_driver(self) -> webdriver.Chrome:
-        chrome_options = Options()
-        if self.headless:
-            chrome_options.add_argument("--headless")
-
-        driver = webdriver.Chrome(options=chrome_options)
-        print("Navegador aberto!")
-        return driver
-
     def bater_ponto(self, periodo: str | None = None) -> Tuple[str, str]:
         """
-        Tenta bater ponto AGORA.
+        Tenta bater ponto AGORA usando Playwright.
         Retorna (status, mensagem):
 
         status:
@@ -50,6 +36,8 @@ class PontoBot:
           - "Ignorado"
           - "Erro"
         """
+
+        # Verificação de feriados / finais de semana
         pode_bater, msg_validacao = self.feriados.can_mark_today()
         if not pode_bater:
             # Não tenta nem abrir navegador
@@ -61,78 +49,100 @@ class PontoBot:
                 "Configure APDATA_USERNAME e APDATA_PASSWORD."
             )
 
-        driver = self._build_driver()
-        wait = WebDriverWait(driver, 30)  # espera até 30s pros elementos aparecerem
-
         try:
-            driver.get("https://cliente.apdata.com.br/dicon/")
-            print("Página carregada!")
+            with sync_playwright() as p:
+                # Lança o navegador
+                browser = p.chromium.launch(
+                    headless=self.headless,
+                    args=[
+                        "--disable-gpu",
+                        "--no-sandbox",
+                        "--disable-dev-shm-usage",
+                    ],
+                )
+                print("Navegador aberto!")
 
-            # Carregamento inicial da página
-            # (tempo extra para certeza em ambientes mais lentos)
-            from time import sleep
-            sleep(5)
+                page = browser.new_page()
+                page.set_default_timeout(30000)  # 30s
 
-            # espera o botão inicial ficar clicável
-            btn = wait.until(
-                ec.presence_of_element_located((By.ID, "button-1021"))
-            )
-            print("Aviso de Cookies carregado...")
-            btn.send_keys(Keys.RETURN)
-            print("Aviso de Cookies aceito!")
+                # Acessa página de ponto
+                page.goto("https://cliente.apdata.com.br/dicon/", wait_until="load")
+                print("Página carregada!")
 
-            sleep(5)
+                # Tempo extra opcional (às vezes o servidor é lento)
+                time.sleep(3)
 
-            # espera os campos de usuário e senha aparecerem
-            usuario = wait.until(
-                ec.presence_of_element_located((By.NAME, "userName_relogio_8001"))
-            )
-            print("Campo de usuário carregado...")
-            senha = wait.until(
-                ec.presence_of_element_located((By.NAME, "password_relogio_8001"))
-            )
-            print("Campo de senha carregado...")
-            bater = wait.until(
-                ec.presence_of_element_located((By.ID, "ext-142"))
-            )
+                # 1) Aceitar aviso de cookies (botão com id=button-1021)
+                try:
+                    btn_cookie = page.wait_for_selector("#button-1021", timeout=15000)
+                    print("Aviso de Cookies carregado...")
+                    # pode ser click() ou press("Enter")
+                    btn_cookie.click()
+                    print("Aviso de Cookies aceito!")
+                except TimeoutError as e:
+                    # Se não aparecer o aviso, segue o fluxo
+                    print(f"Aviso de cookies não apareceu ou já foi aceito: {e}")
 
-            print("Preenchendo credenciais e batendo ponto...")
-            usuario.send_keys(self.username)
-            print("Usuário preenchido...")
-            senha.send_keys(self.password)
-            print("Senha preenchida...")
-            bater.send_keys(Keys.RETURN)
+                # 2) Campos de login
+                usuario = page.wait_for_selector(
+                    "input[name='userName_relogio_8001']", timeout=30000
+                )
+                print("Campo de usuário carregado...")
+                senha = page.wait_for_selector(
+                    "input[name='password_relogio_8001']", timeout=30000
+                )
+                print("Campo de senha carregado...")
+                bater = page.wait_for_selector("#ext-142", timeout=30000)
+                print("Botão de bater ponto carregado...")
 
-            print("Ponto enviado, aguardando confirmação...")
-            resultado = wait.until(
-                ec.presence_of_element_located((By.ID, "ext-144"))
-            )
-            print("Confirmação de ponto carregada...")
+                # 3) Preencher credenciais e enviar
+                print("Preenchendo credenciais e batendo ponto...")
+                usuario.fill(self.username)
+                print("Usuário preenchido...")
+                senha.fill(self.password)
+                print("Senha preenchida...")
+                bater.click()
+                print("Clique no botão de ponto enviado...")
 
-            sleep(2)
+                # 4) Aguardar resultado
+                print("Ponto enviado, aguardando confirmação...")
+                resultado = page.wait_for_selector("#ext-144", timeout=30000)
+                print("Confirmação de ponto carregada...")
 
-            texto_resultado = resultado.text
-            print("Resultado da batida de ponto:")
-            print(texto_resultado)
+                # Pequena pausa para garantir que o texto foi renderizado
+                time.sleep(2)
 
-            periodo_label = periodo or "Ponto"
+                texto_resultado = resultado.inner_text()
+                print("Resultado da batida de ponto:")
+                print(texto_resultado)
+
+                periodo_label = periodo or "Ponto"
+                msg = (
+                    f"{periodo_label} batido com sucesso em "
+                    f"{datetime.now(tz=ZoneInfo('America/Sao_Paulo')).strftime('%d/%m/%Y %H:%M:%S')}.\n\n"
+                    f"Mensagem do sistema:\n{texto_resultado}"
+                )
+
+                browser.close()
+                print("Fechando navegador...")
+
+                return "Sucesso", msg
+
+        except PlaywrightTimeoutError as e:
+            print(f"ERRO AO BATER PONTO (timeout): {e}")
             msg = (
-                f"{periodo_label} batido com sucesso em "
-                f"{datetime.now(tz=ZoneInfo(self.timezone)).strftime('%d/%m/%Y %H:%M:%S')}.\n\n"
-                f"Mensagem do sistema:\n{texto_resultado}"
+                "Timeout ao tentar bater ponto em "
+                f"{datetime.now(tz=ZoneInfo('America/Sao_Paulo')).strftime('%d/%m/%Y %H:%M:%S')}.\n"
+                f"Detalhes: {e}"
             )
-            return "Sucesso", msg
-
-        except Exception as e:
-            # loga erro bonitinho pra debug (incluindo nos Actions)
-            print(f"ERRO AO BATER PONTO: {e}")
-            msg = f"""Erro ao bater ponto em {
-                datetime
-                    .now(tz=ZoneInfo(self.timezone))
-                    .strftime('%d/%m/%Y %H:%M:%S')
-                }: {e}"""
             return "Erro", msg
 
-        finally:
-            driver.quit()
-            print("Fechando navegador...")
+        except Exception as e:
+            # loga erro bonitinho pra debug (incluindo em Actions)
+            print(f"ERRO AO BATER PONTO: {e}")
+            msg = (
+                "Erro ao bater ponto em "
+                f"{datetime.now(tz=ZoneInfo('America/Sao_Paulo')).strftime('%d/%m/%Y %H:%M:%S')}.\n"
+                f"Detalhes: {e}"
+            )
+            return "Erro", msg
