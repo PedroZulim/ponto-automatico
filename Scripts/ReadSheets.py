@@ -7,3 +7,5 @@ def carregar_feriados_municipais() -> None:
         except Exception as exc:
             print(f"Erro ao carregar feriados municipais do Google Sheets: {exc}")
             return
+        
+carregar_feriados_municipais()
