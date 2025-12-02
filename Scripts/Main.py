@@ -7,6 +7,8 @@ from Feriados import Feriados
 from Ponto import PontoBot
 from Send_email import EmailReporter
 
+from random import randint
+
 
 def _esta_na_janela(agora: time, config: Config) -> bool:
     """Retorna True se estiver em qualquer janela (entrada ou saída)."""
@@ -30,6 +32,8 @@ def _identificar_periodo_por_horario_exato(hora_minuto: str, config: Config) -> 
 def main() -> None:
     # Carrega configurações
     config = Config()
+
+    interval = randint(config.intervalo_verificacao - 10, config.intervalo_verificacao + 10)
     
     feriados = Feriados(timezone=config.timezone)
     reporter = EmailReporter()
@@ -81,7 +85,7 @@ def main() -> None:
         # 3) Se ainda não chegou na janela de entrada → só aguarda
         if agora < config.entrada_janela_inicio:
             print("Ainda não chegou na janela. Aguardando...")
-            sleep(config.intervalo_verificacao)
+            sleep(interval)
             continue
 
         # 4) Aqui sabemos que:
@@ -90,7 +94,7 @@ def main() -> None:
         if not _esta_na_janela(agora, config):
             # Só por segurança, deveria ser coberto pelos casos acima
             print("Fora das janelas de marcação, aguardando...")
-            sleep(config.intervalo_verificacao)
+            sleep(interval)
             continue
 
         periodo = _identificar_periodo_por_horario_exato(hora_minuto, config)
@@ -107,7 +111,7 @@ def main() -> None:
             "Dentro da janela de marcação, mas ainda não é o horário exato "
             f"(alvos: {config.entrada_horario_exato} / {config.saida_horario_exato}). Aguardando..."
         )
-        sleep(config.intervalo_verificacao)
+        sleep(interval)
 
 
 if __name__ == "__main__":
