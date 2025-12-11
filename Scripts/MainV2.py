@@ -14,6 +14,8 @@ def main() -> None:
     
     feriados = Feriados(timezone=config.timezone)
     print(feriados.get_feriados())  # Carrega os feriados para cache
+    print(feriados.is_feriado_hoje())
+    print(feriados.can_mark_today())
 
 
 
