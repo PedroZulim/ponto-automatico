@@ -11,7 +11,7 @@ class Feriados:
         self,
         ano: int | None = None,
         timezone: str = "America/Sao_Paulo",
-        municipal_csv_url: str | None = None,
+        municipal_csv_url: str | None = "https://docs.google.com/spreadsheets/d/14-6PkC3XyFaSXk7WcZzsum0uBevVQfp1h063dFEOffE/edit?usp=drivesdk/export?format=csv",
         municipal_date_column: str = "date",
     ) -> None:
         """
