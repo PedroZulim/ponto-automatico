@@ -11,7 +11,7 @@ class Feriados:
         self,
         ano: int | None = None,
         timezone: str = "America/Sao_Paulo",
-        municipal_csv_url: str | None = "https://docs.google.com/spreadsheets/d/14-6PkC3XyFaSXk7WcZzsum0uBevVQfp1h063dFEOffE/edit?usp=drivesdk/export?format=csv",
+        municipal_csv_url: str | None = "https://docs.google.com/spreadsheets/d/14-6PkC3XyFaSXk7WcZzsum0uBevVQfp1h063dFEOffE/export?format=csv",
         municipal_date_column: str = "date",
     ) -> None:
         """
@@ -76,7 +76,13 @@ class Feriados:
             return
 
         try:
-            df = pd.read_csv(self.municipal_csv_url)
+            df = pd.read_csv(
+                self.municipal_csv_url,
+                on_bad_lines='skip',  # Pula linhas mal formatadas
+                sep=',',  # Especifica o separador
+                encoding='utf-8',  # Especifica a codificação
+                skipinitialspace=True  # Remove espaços em branco extras
+            )
         except Exception as exc:
             print(f"Erro ao carregar feriados municipais do Google Sheets: {exc}")
             self._cache_datas_municipais = []
@@ -93,15 +99,8 @@ class Feriados:
         if "year" in df.columns:
             df = df[df["year"] == self.ano]
 
-        # Converte as datas para datetime, aceitando tanto YYYY-MM-DD quanto DD/MM/YYYY
-        datas = pd.to_datetime(
-            df[self.municipal_date_column],
-            errors="coerce",
-            dayfirst=True,  # aceita 25/12/2025, por exemplo
-        ).dropna()
-
         # Normaliza para string "YYYY-MM-DD"
-        self._cache_datas_municipais = datas.dt.strftime("%Y-%m-%d").tolist()
+        self._cache_datas_municipais = df["date"].to_list()
 
     # ================== INTERFACE PÚBLICA ==================
 
