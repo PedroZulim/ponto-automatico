@@ -76,7 +76,7 @@ class PontoBot:
                 print("Página carregada!")
 
                 # Tempo extra opcional (às vezes o servidor é lento)
-                time.sleep(3)
+                time.sleep(5)
 
                 # 1) Aceitar aviso de cookies (botão com id=button-1021)
                 try:
