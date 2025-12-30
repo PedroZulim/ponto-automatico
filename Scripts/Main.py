@@ -102,10 +102,9 @@ def main() -> None:
         if periodo:
             # Só entra aqui se for exatamente o horário configurado
             print(f"Horário EXATO de {periodo} atingido ({hora_minuto}). Tentando bater ponto...")
-            try:
-                status, msg = ponto_bot.bater_ponto(periodo=periodo)
-            except Exception:
-                print('Deu erro, nova tentativa!')
+            status, msg = ponto_bot.bater_ponto(periodo=periodo)
+            if status == "Erro":
+                print("Deu erro, nova tentativa!")
                 status, msg = ponto_bot.bater_ponto(periodo=periodo)
             reporter.send_report(status, msg)
             break
