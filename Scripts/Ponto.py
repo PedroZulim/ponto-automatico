@@ -80,7 +80,7 @@ class PontoBot:
 
                 # 1) Aceitar aviso de cookies (botão com id=button-1021)
                 try:
-                    btn_cookie = page.wait_for_selector("#button-1021", timeout=15000)
+                    btn_cookie = page.wait_for_selector("#button-1020", timeout=15000)
                     print("Aviso de Cookies carregado...")
                     btn_cookie.click()
                     print("Aviso de Cookies aceito!")
