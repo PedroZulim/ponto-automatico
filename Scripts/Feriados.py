@@ -31,13 +31,13 @@ class Feriados:
         self.municipal_date_column = municipal_date_column
 
         # Cache interno
-        self._cache_datas_nacionais: List[str] | None = None
-        self._cache_datas_municipais: List[str] | None = None
+        self._df_datas_nacionais: List[str] | None = None
+        self._df_datas_municipais: List[str] | None = None
 
     # ================== FERIADOS NACIONAIS / ESTADUAIS (API) ==================
 
     def _carregar_feriados_nacionais(self) -> None:
-        if self._cache_datas_nacionais is not None:
+        if self._df_datas_nacionais is not None:
             return
 
         url = f"https://brasilapi.com.br/api/feriados/v1/{self.ano}"
@@ -45,16 +45,15 @@ class Feriados:
             response = requests.get(url, timeout=10)
         except Exception as exc:
             print(f"Erro ao buscar feriados nacionais: {exc}")
-            self._cache_datas_nacionais = []
+            self._df_datas_nacionais = []
             return
 
         if response.status_code == 200:
-            df = pd.DataFrame(response.json())
             # A API já retorna "date" em formato YYYY-MM-DD
-            self._cache_datas_nacionais = df["date"].to_list()
+            self._df_datas_nacionais = pd.DataFrame(response.json())
         else:
             print(f"Não foi possível buscar feriados. Status: {response.status_code}")
-            self._cache_datas_nacionais = []
+            self._df_datas_nacionais = []
 
     # ================== FERIADOS MUNICIPAIS (GOOGLE SHEETS) ==================
 
@@ -67,12 +66,12 @@ class Feriados:
         - Formato aceito: YYYY-MM-DD ou DD/MM/YYYY
         - Opcionalmente, pode haver uma coluna "year" para filtrar pelo ano
         """
-        if self._cache_datas_municipais is not None:
+        if self._df_datas_municipais is not None:
             return
 
         if not self.municipal_csv_url:
             # Se não foi configurada URL, não temos feriados municipais
-            self._cache_datas_municipais = []
+            self._df_datas_municipais = []
             return
 
         try:
@@ -85,14 +84,14 @@ class Feriados:
             )
         except Exception as exc:
             print(f"Erro ao carregar feriados municipais do Google Sheets: {exc}")
-            self._cache_datas_municipais = []
+            self._df_datas_municipais = []
             return
 
         if self.municipal_date_column not in df.columns:
             print(
                 f"A coluna '{self.municipal_date_column}' não existe na planilha de feriados municipais."
             )
-            self._cache_datas_municipais = []
+            self._df_datas_municipais = []
             return
 
         # Se existir uma coluna 'year', filtra pelo ano atual (self.ano)
@@ -100,7 +99,7 @@ class Feriados:
             df = df[df["year"] == self.ano]
 
         # Normaliza para string "YYYY-MM-DD"
-        self._cache_datas_municipais = df["date"].to_list()
+        self._df_datas_municipais = df
 
     # ================== INTERFACE PÚBLICA ==================
 
@@ -113,16 +112,13 @@ class Feriados:
         self._carregar_feriados_nacionais()
         self._carregar_feriados_municipais()
 
-        datas_nacionais = self._cache_datas_nacionais or []
-        datas_municipais = self._cache_datas_municipais or []
+        datas_nacionais = self._df_datas_nacionais or []
+        datas_municipais = self._df_datas_municipais or []
 
         # Une e remove duplicados
         todas = sorted(set(datas_nacionais + datas_municipais))
         return todas
 
-    def is_feriado_hoje(self) -> bool:
-        hoje_str = datetime.now(tz=ZoneInfo(self.timezone)).strftime("%Y-%m-%d")
-        return hoje_str in self.get_feriados()
 
     def can_mark_today(self) -> Tuple[bool, str]:
         """
@@ -133,12 +129,20 @@ class Feriados:
         hoje_semana = hoje.weekday()  # 0 = segunda, 6 = domingo
 
         if not (0 <= hoje_semana <= 4):
-            msg = "Hoje não é dia útil (sábado ou domingo), não vou bater ponto."
+            if hoje_semana == 5:
+                dia = 'sábado'
+            else:
+                dia = 'domingo'
+            msg = f"Hoje não é dia útil {dia}, não vou bater ponto."
             print(msg)
             return False, msg
+        
+        hoje_str = datetime.now(tz=ZoneInfo(self.timezone)).strftime("%Y-%m-%d")
 
-        if self.is_feriado_hoje():
-            msg = "Hoje é feriado (nacional/estadual ou municipal), não vou bater ponto."
+        feriados = self.get_feriados()
+
+        if hoje_str in feriados["date"].to_list():
+            msg = f"Hoje é feriado {feriados["type"]}, não vou bater ponto."
             print(msg)
             return False, msg
 
