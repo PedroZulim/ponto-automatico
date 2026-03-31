@@ -176,6 +176,8 @@ config.txt
 .config
 secret.key
 
+tests/
+
 # Arquivo de configuração local (se você não quiser commitá-lo)
 # Descomente a linha abaixo se preferir não versionar seu config.json
 # config.json
